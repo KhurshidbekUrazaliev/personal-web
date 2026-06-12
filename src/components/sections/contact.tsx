@@ -8,7 +8,7 @@ const CONTACT_METHODS = [
   { icon: Mail,      label: 'Email',     value: 'khurshidbekurazaliev@gmail.com', href: 'mailto:khurshidbekurazaliev@gmail.com', color: '#C9A84C' },
   { icon: Linkedin,  label: 'LinkedIn',  value: 'linkedin.com/in/khurshidbekurazaliev', href: 'https://www.linkedin.com/in/khurshidbekurazaliev', color: '#7AB8F5' },
   { icon: Github,    label: 'GitHub',    value: 'KhurshidbekUrazaliev', href: 'https://github.com/KhurshidbekUrazaliev', color: '#A8D5A2' },
-  { icon: Instagram, label: 'Instagram', value: '@ummah_x_', href: 'https://www.instagram.com/ummah_x_/', color: '#E8A87C' },
+  { icon: Instagram, label: 'Instagram', value: '@cfarisc19', href: 'https://www.instagram.com/cfarisc19/', color: '#E8A87C' },
   { icon: MapPin,    label: 'Location',  value: 'Busan, South Korea 🇰🇷', href: null, color: '#3D8A5A' },
 ];
 
