@@ -5,7 +5,7 @@ const socialLinks = [
   { name: 'GitHub',    href: 'https://github.com/KhurshidbekUrazaliev',           icon: Github },
   { name: 'LinkedIn',  href: 'https://www.linkedin.com/in/khurshidbekurazaliev/', icon: Linkedin },
   { name: 'Email',     href: 'mailto:khurshidbekurazaliev@gmail.com',              icon: Mail },
-  { name: 'Instagram', href: 'https://www.instagram.com/ummah_x/',                icon: Instagram },
+  { name: 'Instagram', href: 'https://www.instagram.com/cfarisc19/',                icon: Instagram },
 ];
 
 export function Footer() {
