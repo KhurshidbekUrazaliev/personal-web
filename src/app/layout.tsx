@@ -3,9 +3,6 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { MotionProvider } from '@/components/providers/motion-provider';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
-import { ScrollProgress } from '@/components/scroll-progress';
 import { SITE } from '@/lib/site';
 
 const inter = Inter({
@@ -74,14 +71,8 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange={false}
         >
-          <MotionProvider>
-            <div className="flex min-h-screen flex-col">
-              <ScrollProgress />
-              <Header />
-              <main id="main" className="flex-1 pt-16">{children}</main>
-              <Footer />
-            </div>
-          </MotionProvider>
+          {/* The header and footer are added in (site)/layout.tsx. */}
+          <MotionProvider>{children}</MotionProvider>
         </ThemeProvider>
       </body>
     </html>

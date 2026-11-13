@@ -31,7 +31,7 @@ const PROJECTS: Project[] = [
     technologies: ['Next.js', 'React', 'Tailwind CSS', 'Framer Motion', 'Radix UI', 'Base UI', 'Vercel'],
     category: 'work',
     status: 'Live',
-    liveUrl: 'https://aihaeba.com',
+    liveUrl: LINKS.aiHaeba,
     liveLabel: 'aihaeba.com',
   },
   {
@@ -76,7 +76,7 @@ const PROJECTS: Project[] = [
     technologies: ['Python', 'python-telegram-bot', 'Gemini API', 'Vercel'],
     category: 'tools',
     status: 'Live',
-    liveUrl: 'https://t.me/islam_q_a_bot',
+    liveUrl: LINKS.ilmulHaqBot,
     liveLabel: 'Open in Telegram',
   },
   {

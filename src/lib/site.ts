@@ -41,7 +41,10 @@ export const LINKS = {
   linkedin: 'https://www.linkedin.com/in/khurshidbekurazaliev',
   instagram: 'https://www.instagram.com/cfarisc19/',
   telegram: 'https://t.me/lu3frv',
+  telegramChannel: 'https://t.me/+_kmuNkYdxhQ4MDMy',
   frontendHub: 'https://frontendhub.site',
+  aiHaeba: 'https://aihaeba.com',
+  ilmulHaqBot: 'https://t.me/islam_q_a_bot',
 } as const;
 
 /** A `mailto:` address that reaches both inboxes. */

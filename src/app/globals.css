@@ -119,6 +119,255 @@ body {
   border-color: var(--brand-border-hi);
 }
 
+/* ─── Links page (/links) ─────────────────────────────── */
+/* Glass rows over a wallpaper that stays still while the page scrolls. */
+.links-page {
+  --glass-tint: rgba(10, 24, 16, 0.36);
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: #fff;
+  /* The system font: San Francisco on Apple devices. */
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+    'Inter', system-ui, sans-serif;
+}
+.links-page :focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.links-wallpaper {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 70% at 0% 0%, rgba(38, 122, 82, 0.6), transparent 60%),
+    radial-gradient(90% 60% at 100% 8%, rgba(176, 142, 54, 0.34), transparent 58%),
+    radial-gradient(110% 70% at 100% 100%, rgba(14, 96, 108, 0.58), transparent 60%),
+    radial-gradient(100% 60% at 0% 100%, rgba(20, 70, 44, 0.72), transparent 62%),
+    #040b07;
+}
+
+/* The glowing balls sit around the column of links on any screen width. */
+.links-orbs {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: min(100%, 620px);
+  transform: translateX(-50%);
+}
+.links-orb {
+  position: absolute;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(var(--blur, 1px));
+  animation: links-drift var(--time, 26s) ease-in-out infinite alternate;
+}
+.links-orb--gold {
+  background: radial-gradient(circle at 36% 32%, #e9cd82 0%, #d8b458 24%, #b9973f 50%, #7c5f1f 78%, #4a3810 100%);
+}
+.links-orb--emerald {
+  background: radial-gradient(circle at 36% 32%, #7ddcae 0%, #3cbd86 22%, #1f9d6b 48%, #0c5a3c 78%, #06301f 100%);
+}
+.links-orb--teal {
+  background: radial-gradient(circle at 36% 32%, #6fd3e0 0%, #39b3c3 22%, #14899a 50%, #0a4d5a 78%, #052a32 100%);
+}
+.links-orb--rose {
+  background: radial-gradient(circle at 36% 32%, #f7a9b3 0%, #e0707e 24%, #b93c4a 52%, #6f1d27 80%, #3a0d14 100%);
+}
+@keyframes links-drift {
+  to { transform: translate3d(var(--dx, 14px), var(--dy, -22px), 0) scale(1.05); }
+}
+
+/* The glass itself: a blur of what is behind, a tint, and light on the rim. */
+.glass {
+  position: relative;
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.17) 0%, rgba(255, 255, 255, 0.05) 36%, rgba(255, 255, 255, 0.03) 64%, rgba(255, 255, 255, 0.1) 100%),
+    var(--glass-tint);
+  /* brightness keeps white text readable where a bright light sits behind it */
+  -webkit-backdrop-filter: blur(22px) saturate(170%) brightness(0.8);
+  backdrop-filter: blur(22px) saturate(170%) brightness(0.8);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.36),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.07),
+    0 14px 34px -14px rgba(0, 0, 0, 0.6),
+    0 2px 6px rgba(0, 0, 0, 0.18);
+}
+/* A one-pixel rim, bright where the light would catch it. */
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.09) 30%, rgba(255, 255, 255, 0.05) 66%, rgba(255, 255, 255, 0.34));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.glass-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 72px;
+  padding: 13px 14px 13px 13px;
+  color: #fff;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.25s;
+}
+/* The light spot that follows the pointer (set in glass-link.tsx). */
+.glass-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(240px circle at var(--gx, 50%) var(--gy, 0%), rgba(255, 255, 255, 0.2), transparent 62%);
+  opacity: 0;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .glass-link:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.09),
+      0 20px 40px -14px rgba(0, 0, 0, 0.7),
+      0 3px 8px rgba(0, 0, 0, 0.2);
+  }
+  .glass-link:hover::after { opacity: 1; }
+  .glass-link:hover .glass-link-chevron {
+    opacity: 0.95;
+    transform: translateX(2px);
+  }
+}
+.glass-link:active { transform: scale(0.985); }
+.glass-link-title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+.glass-link-detail {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.82);
+  overflow-wrap: anywhere;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+.glass-link-chevron {
+  flex: none;
+  opacity: 0.5;
+  transition: transform 0.25s, opacity 0.25s;
+}
+
+/* App-icon tiles at the start of each row. */
+.links-tile {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  overflow: hidden;
+  border-radius: 13px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 8px 16px -8px rgba(0, 0, 0, 0.7);
+}
+
+.glass-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.glass-button:active { transform: scale(0.93); }
+.glass-toast {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  padding: 7px 13px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+.glass-toast[data-open='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+.links-avatar {
+  width: 112px;
+  height: 112px;
+  padding: 5px;
+  border-radius: 50%;
+}
+.links-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.links-name {
+  margin-top: 18px;
+  font-size: clamp(1.625rem, 7vw, 1.875rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.022em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+.links-tagline {
+  max-width: 34ch;
+  margin-top: 8px;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.78);
+  text-wrap: balance;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Each piece rises into place, one after the other (--i is its turn). */
+.links-rise {
+  animation: links-rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 45ms + 60ms);
+}
+@keyframes links-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .links-rise,
+  .links-orb { animation: none; }
+}
+
 /* ─── Reduced motion ──────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
