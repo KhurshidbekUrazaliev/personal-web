@@ -52,4 +52,4 @@ export const MAILTO_BOTH = `mailto:${EMAILS.primary},${EMAILS.secondary}`;
  * Web3Forms keys are made to sit in public page code, so it can live here.
  * While this is empty the form opens the visitor's mail app instead.
  */
-export const WEB3FORMS_ACCESS_KEY = '';
+export const WEB3FORMS_ACCESS_KEY = '35a6201d-3163-43d5-8319-0773f7a93466';
