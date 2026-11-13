@@ -28,7 +28,7 @@ const PROJECTS: Project[] = [
     title: 'AI 해바 (AI Haeba)',
     description:
       `AI marketing and business tools for small businesses in Korea. Sixteen connected tools carry one project from a business idea to products, branding, product pages and campaigns. One of my projects as a software engineer at ${SITE.company}.`,
-    technologies: ['Next.js', 'React'],
+    technologies: ['Next.js', 'React', 'Tailwind CSS', 'Framer Motion', 'Radix UI', 'Base UI', 'Vercel'],
     category: 'work',
     status: 'Live',
     liveUrl: 'https://aihaeba.com',
@@ -39,7 +39,7 @@ const PROJECTS: Project[] = [
     title: `${SITE.company} website`,
     description:
       `The website of ${SITE.company}, the education technology company I work at: coding and AI courses, its own hardware (coding drones, 3D printers, robots) and software. It runs in Korean, English, Japanese and Chinese. I upgraded much of it after I joined.`,
-    technologies: ['PHP (GNUBoard)', 'JavaScript', 'CSS'],
+    technologies: ['PHP', 'GNUBoard', 'jQuery', 'JavaScript', 'HTML & CSS', 'AOS'],
     category: 'work',
     status: 'Live',
     liveUrl: SITE.companyUrl,
@@ -50,7 +50,7 @@ const PROJECTS: Project[] = [
     title: 'Silk Node website',
     description:
       `The website of Silk Node, a custom software development company in Busan, in Korean and English. One of my projects as a software engineer at ${SITE.company}.`,
-    technologies: ['Next.js', 'React'],
+    technologies: ['Next.js', 'React', 'Tailwind CSS', 'Vercel'],
     category: 'work',
     status: 'Live',
     liveUrl: 'https://silknode.ai.kr',

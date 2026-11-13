@@ -12,8 +12,8 @@ import { SPOKEN_LANGUAGES } from '@/lib/languages';
 const SKILL_GROUPS: SkillGroup[] = [
   {
     title: 'Web',
-    tools: ['React', 'Next.js', 'TypeScript', 'JavaScript', 'Tailwind CSS', 'Vite', 'GSAP', 'Three.js'],
-    usedIn: 'AI 해바, Silk Node website, Frontend Hub, Korean Vocabulary App, this site',
+    tools: ['React', 'Next.js', 'TypeScript', 'JavaScript', 'Tailwind CSS', 'Framer Motion', 'jQuery', 'Vite', 'GSAP', 'Three.js'],
+    usedIn: 'AI 해바, Silk Node website, Jinie EduTech website, Frontend Hub, Korean Vocabulary App, this site',
   },
   {
     title: 'Mobile',
@@ -22,8 +22,8 @@ const SKILL_GROUPS: SkillGroup[] = [
   },
   {
     title: 'Backend and data',
-    tools: ['Node.js', 'Express', 'Supabase', 'SQL'],
-    usedIn: 'TrY server, LifePath sync and rankings',
+    tools: ['Node.js', 'Express', 'PHP', 'Supabase', 'SQL'],
+    usedIn: 'Jinie EduTech website, TrY server, LifePath sync and rankings',
   },
   {
     title: 'Python and AI',
@@ -39,13 +39,13 @@ const experiences: Experience[] = [
     id: 'work',
     title: SITE.role,
     company: SITE.company,
-    duration: 'Present',
+    duration: 'Sep 2026 - Present',
     description: [
       'AI 해바 (aihaeba.com): AI marketing and business tools for small businesses',
       'jcodeedu.com: the company website, in four languages, which I upgraded after joining',
       'silknode.ai.kr: the website of Silk Node, a software development company in Busan, in Korean and English',
     ],
-    technologies: ['Next.js', 'React', 'PHP'],
+    technologies: ['Next.js', 'React', 'Tailwind CSS', 'Framer Motion', 'PHP', 'jQuery'],
   },
   {
     id: 'personal',
