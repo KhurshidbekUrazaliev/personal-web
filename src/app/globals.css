@@ -71,6 +71,54 @@ body {
   font-family: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
+/* ─── Keyboard focus ──────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--brand-gold);
+  outline-offset: 2px;
+}
+
+/* Board squares touch each other, so their ring goes inside. */
+.chess-square:focus-visible { outline-offset: -2px; }
+
+/* These two sit inside a frame, and the frame shows the focus instead. */
+.palette-input:focus-visible,
+.scan-input:focus-visible { outline: none; }
+.scan-frame:focus-within { box-shadow: 0 0 0 2px var(--brand-gold); }
+
+/* "Skip to content": off screen until a keyboard user tabs to it. */
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 200;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: var(--brand-gold);
+  color: var(--brand-bg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transform: translateY(-300%);
+}
+.skip-link:focus-visible { transform: translateY(0); }
+
+/* ─── Form fields ─────────────────────────────────────── */
+/* 16px text: anything smaller makes iPhones zoom in when a field is tapped. */
+.field {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--brand-border);
+  background: rgba(10,26,15,0.8);
+  color: var(--brand-text);
+  font-size: 1rem;
+  transition: border-color 0.15s;
+}
+.field::placeholder { color: rgba(122,170,136,0.6); }
+.field:focus-visible {
+  outline-offset: 0;
+  border-color: var(--brand-border-hi);
+}
+
 /* ─── Reduced motion ──────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

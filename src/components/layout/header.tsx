@@ -5,13 +5,14 @@ import { Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Same order as the sections in src/app/page.tsx.
 const navigation = [
   { name: 'Home',      href: '#home' },
+  { name: 'Projects',  href: '#projects' },
   { name: 'About',     href: '#about' },
   { name: 'Languages', href: '#languages' },
-  { name: 'DNA',       href: '#language-dna' },
+  { name: 'Scanner',   href: '#language-dna' },
   { name: 'Resume',    href: '#resume' },
-  { name: 'Projects',  href: '#projects' },
   { name: 'Contact',   href: '#contact' },
 ];
 
@@ -38,9 +39,10 @@ export function Header() {
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
+          {/* Logo: the site's own address */}
           <Link
-            href="/"
+            href="#home"
+            aria-label="khurshidbek.site, back to top"
             className="font-mono text-base font-semibold tracking-wider transition-opacity hover:opacity-80"
             style={{
               color: 'var(--brand-gold)',
@@ -48,11 +50,11 @@ export function Header() {
               letterSpacing: '0.06em',
             }}
           >
-            KU<span style={{ color: 'var(--brand-muted)' }}>.dev</span>
+            khurshidbek<span style={{ color: 'var(--brand-muted)' }}>.site</span>
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex md:items-center md:gap-7">
+          <nav aria-label="Main" className="hidden md:flex md:items-center md:gap-7">
             {navigation.map(item => (
               <Link
                 key={item.name}
@@ -67,12 +69,15 @@ export function Header() {
 
           {/* Mobile menu button */}
           <button
+            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden rounded-lg p-2 transition-colors"
+            className="md:hidden rounded-lg p-3 -mr-1 transition-colors"
             style={{ color: 'var(--brand-muted)' }}
-            aria-label="Toggle menu"
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
+            aria-controls="mobile-nav"
           >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileMenuOpen ? <X className="h-5 w-5" aria-hidden="true" /> : <Menu className="h-5 w-5" aria-hidden="true" />}
           </button>
         </div>
       </div>
@@ -81,13 +86,14 @@ export function Header() {
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
+            id="mobile-nav"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden"
             style={{ borderTop: '1px solid var(--brand-border)', background: 'rgba(10,26,15,0.97)' }}
           >
-            <nav className="flex flex-col px-4 py-3 gap-1">
+            <nav aria-label="Mobile" className="flex flex-col px-4 py-3 gap-1">
               {navigation.map(item => (
                 <Link
                   key={item.name}

@@ -1,24 +1,43 @@
 'use client';
 
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { runWhileVisible } from '@/lib/animation-loop';
+import {
+  LEVEL_STEPS,
+  SPOKEN_LANGUAGES,
+  languageById,
+  type LanguageId,
+} from '@/lib/languages';
 
 /* ─── Data ───────────────────────────────────────────────── */
 const VOCAB_Q = ['Hello', 'Thank you', 'Good', 'Water', 'Friend'];
 
-const LANGUAGES = [
+// Name, flag and level come from src/lib/languages.ts.
+// This list adds what only the tree needs, in left-to-right order.
+const TREE_DETAILS: {
+  id: LanguageId;
+  family: string;
+  script: string;
+  sample: string;
+  translation: string;
+  fact: string;
+  regions: string[];
+  color: string;
+  cx: number;
+  cy: number;
+  vocab: string[];
+}[] = [
   {
-    id: 'uzbek', name: 'Uzbek', native: "O'zbek", flag: '🇺🇿',
-    level: 'Native', percent: 100, family: 'Turkic', script: 'Latin / Cyrillic',
+    id: 'uzbek', family: 'Turkic', script: 'Latin / Cyrillic',
     sample: "Salom! Men Xurshidbekman.", translation: "Hello! I am Khurshidbek.",
-    fact: "Your mother tongue — the heartbeat of childhood and the language your dreams still come in.",
+    fact: "My mother tongue — the heartbeat of childhood and the language my dreams still come in.",
     regions: ['Uzbekistan', 'Afghanistan', 'Tajikistan'],
     color: '#C9A84C', cx: 65, cy: 90,
     vocab: ["Salom", "Rahmat", "Yaxshi", "Suv", "Do'st"],
   },
   {
-    id: 'turkish', name: 'Turkish', native: 'Türkçe', flag: '🇹🇷',
-    level: 'Elementary', percent: 50, family: 'Turkic', script: 'Latin',
+    id: 'turkish', family: 'Turkic', script: 'Latin',
     sample: "Merhaba! Türkçe öğreniyorum.", translation: "Hello! I am learning Turkish.",
     fact: "Linguistic cousin of Uzbek — same Turkic roots, ~60% mutual intelligibility.",
     regions: ['Turkey', 'Cyprus', 'Central Asia'],
@@ -26,8 +45,7 @@ const LANGUAGES = [
     vocab: ["Merhaba", "Teşekkürler", "İyi", "Su", "Arkadaş"],
   },
   {
-    id: 'russian', name: 'Russian', native: 'Русский', flag: '🇷🇺',
-    level: 'Intermediate', percent: 60, family: 'East Slavic', script: 'Cyrillic',
+    id: 'russian', family: 'East Slavic', script: 'Cyrillic',
     sample: "Привет! Я учусь каждый день.", translation: "Hello! I study every day.",
     fact: "Post-Soviet lingua franca — bridges cultures across 15 former republics.",
     regions: ['Russia', 'Central Asia', 'Eastern Europe'],
@@ -35,8 +53,7 @@ const LANGUAGES = [
     vocab: ["Привет", "Спасибо", "Хорошо", "Вода", "Друг"],
   },
   {
-    id: 'english', name: 'English', native: 'English', flag: '🇬🇧',
-    level: 'Advanced', percent: 95, family: 'Germanic', script: 'Latin',
+    id: 'english', family: 'Germanic', script: 'Latin',
     sample: "The language of global leverage and technology.",
     translation: '',
     fact: "IELTS 7.5 — the key that opens every international door.",
@@ -45,26 +62,36 @@ const LANGUAGES = [
     vocab: ["Hello", "Thank you", "Good", "Water", "Friend"],
   },
   {
-    id: 'arabic', name: 'Arabic', native: 'العربية', flag: '🇸🇦',
-    level: 'B1', percent: 40, family: 'Semitic', script: 'Arabic (RTL)',
+    id: 'arabic', family: 'Semitic', script: 'Arabic (RTL)',
     sample: "بسم الله الرحمن الرحيم",
-    translation: "In the name of God, the Most Gracious.",
+    translation: "In the name of God, the Most Gracious, the Most Merciful.",
     fact: "The language of the Quran — every word studied is an act of worship.",
     regions: ['Middle East', 'North Africa', '22 countries'],
     color: '#A8D5A2', cx: 548, cy: 72,
     vocab: ["مرحبا", "شكراً", "جيد", "ماء", "صديق"],
   },
   {
-    id: 'korean', name: 'Korean', native: '한국어', flag: '🇰🇷',
-    level: 'Intermediate', percent: 60, family: 'Koreanic', script: 'Hangul',
+    id: 'korean', family: 'Koreanic', script: 'Hangul',
     sample: "안녕하세요! 부산에 살고 있어요.",
     translation: "Hello! I live in Busan.",
-    fact: "Living in Busan — immersed daily in the language, the culture, and the 삼겹살.",
+    fact: "Living in Busan — immersed daily in the language and the culture.",
     regions: ['South Korea', 'North Korea', 'Worldwide diaspora'],
     color: '#3D8A5A', cx: 678, cy: 82,
     vocab: ["안녕하세요", "감사합니다", "좋아요", "물", "친구"],
   },
 ];
+
+const LANGUAGES = TREE_DETAILS.map(details => ({
+  ...languageById(details.id),
+  ...details,
+}));
+
+type TreeLanguage = (typeof LANGUAGES)[number];
+
+// The same languages, strongest first, for the plain list that phones get.
+const LANGUAGES_BY_LEVEL = SPOKEN_LANGUAGES.map(
+  spoken => LANGUAGES.find(l => l.id === spoken.id)!,
+);
 
 /* ─── SVG tree paths ─────────────────────────────────────── */
 const BRANCH_SEGS = [
@@ -78,7 +105,7 @@ const BRANCH_SEGS = [
   { d: 'M 390 285 C 482 260 592 228 648 195 C 662 168 672 130 678 82',                w: 2.5, delay: 0.58 },
 ];
 
-const FULL_PATHS: Record<string, string> = {
+const FULL_PATHS: Record<LanguageId, string> = {
   uzbek:   'M 390 285 C 268 268 168 238 105 205 C 85 172 70 135 65 90',
   turkish: 'M 390 285 C 268 268 168 238 105 205 C 132 172 158 132 178 76',
   russian: 'M 390 285 C 355 252 318 220 292 190 L 292 72',
@@ -88,19 +115,12 @@ const FULL_PATHS: Record<string, string> = {
 };
 
 /* ─── TTS ────────────────────────────────────────────────── */
-const LANG_CODES: Record<string, string> = {
+const LANG_CODES: Record<LanguageId, string> = {
   uzbek: 'uz-UZ', turkish: 'tr-TR', russian: 'ru-RU',
   english: 'en-US', arabic: 'ar-SA', korean: 'ko-KR',
 };
 
-function getSignalBars(percent: number): number {
-  if (percent >= 85) return 4;
-  if (percent >= 55) return 3;
-  if (percent >= 35) return 2;
-  return 1;
-}
-
-function speak(text: string, langId: string) {
+function speak(text: string, langId: LanguageId) {
   if (typeof window === 'undefined' || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(text);
@@ -122,7 +142,7 @@ function wordSimilarity(heard: string, expected: string): number {
   return (matched / e.length) * 100;
 }
 
-function PronounceButton({ text, langId, color }: { text: string; langId: string; color: string }) {
+function PronounceButton({ text, langId, color }: { text: string; langId: LanguageId; color: string }) {
   const [micState, setMicState]     = useState<MicState>('idle');
   const [score, setScore]           = useState<number | null>(null);
   const [transcript, setTranscript] = useState('');
@@ -161,7 +181,7 @@ function PronounceButton({ text, langId, color }: { text: string; langId: string
     const rec = new SR() as any;
     recRef.current = rec;
 
-    // uz-UZ not supported in any browser — fallback to en-US so mic still works
+    // uz-UZ is not supported in any browser, so Uzbek falls back to Turkish
     rec.lang            = langId === 'uzbek' ? 'tr-TR' : (LANG_CODES[langId] ?? 'en-US');
     rec.interimResults  = false;
     rec.maxAlternatives = 5;
@@ -222,6 +242,7 @@ function PronounceButton({ text, langId, color }: { text: string; langId: string
     <div className="mt-3 flex flex-col gap-2">
       <div className="flex items-center gap-2 flex-wrap">
         <button
+          type="button"
           onClick={listen}
           disabled={micState === 'listening'}
           className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-all hover:scale-105 disabled:opacity-60 font-mono"
@@ -277,24 +298,32 @@ function PronounceButton({ text, langId, color }: { text: string; langId: string
 }
 
 /* ─── Quiz Panel ─────────────────────────────────────────── */
-function QuizPanel({ lang }: { lang: (typeof LANGUAGES)[0] }) {
+const shuffled = <T,>(items: T[]) => [...items].sort(() => Math.random() - 0.5);
+
+/** The right word for one question plus three wrong ones, in random order. */
+function quizOptions(lang: TreeLanguage, question: number): string[] {
+  const wrong = shuffled(
+    LANGUAGES.filter(l => l.id !== lang.id).map(l => l.vocab[question]),
+  ).slice(0, 3);
+  return shuffled([...wrong, lang.vocab[question]]);
+}
+
+function QuizPanel({ lang }: { lang: TreeLanguage }) {
   const [qIdx, setQIdx]         = useState(0);
   const [score, setScore]       = useState(0);
   const [chosen, setChosen]     = useState<string | null>(null);
   const [finished, setFinished] = useState(false);
+  // Drawn once per question, so the order holds still while it is on screen.
+  const [options, setOptions]   = useState(() => quizOptions(lang, 0));
 
   const total   = VOCAB_Q.length;
   const correct = lang.vocab[qIdx];
 
-  const options = useMemo(() => {
-    const wrong = LANGUAGES
-      .filter(l => l.id !== lang.id)
-      .map(l => l.vocab[qIdx])
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 3);
-    return [...wrong, correct].sort(() => Math.random() - 0.5);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qIdx, lang.id]);
+  const showQuestion = (question: number) => {
+    setQIdx(question);
+    setChosen(null);
+    setOptions(quizOptions(lang, question));
+  };
 
   const pick = (opt: string) => {
     if (chosen) return;
@@ -302,11 +331,11 @@ function QuizPanel({ lang }: { lang: (typeof LANGUAGES)[0] }) {
     if (opt === correct) setScore(s => s + 1);
     setTimeout(() => {
       if (qIdx + 1 >= total) setFinished(true);
-      else { setQIdx(q => q + 1); setChosen(null); }
+      else showQuestion(qIdx + 1);
     }, 900);
   };
 
-  const reset = () => { setQIdx(0); setScore(0); setChosen(null); setFinished(false); };
+  const reset = () => { setScore(0); setFinished(false); showQuestion(0); };
 
   const isRTL   = lang.id === 'arabic';
   const isCJK   = lang.id === 'korean';
@@ -319,7 +348,7 @@ function QuizPanel({ lang }: { lang: (typeof LANGUAGES)[0] }) {
       <p className="text-sm mb-5" style={{ color: 'var(--brand-muted)' }}>
         {score === total ? 'Perfect score!' : score >= 3 ? 'Good job!' : 'Keep studying!'}
       </p>
-      <button onClick={reset}
+      <button type="button" onClick={reset}
         className="text-xs px-5 py-2 rounded-lg font-mono transition-all hover:scale-105"
         style={{ background: `${lang.color}22`, color: lang.color, border: `1px solid ${lang.color}44`, fontFamily: 'var(--font-mono,monospace)' }}>
         ↺ Try Again
@@ -355,7 +384,7 @@ function QuizPanel({ lang }: { lang: (typeof LANGUAGES)[0] }) {
             else               { txtColor = 'rgba(255,255,255,0.3)'; }
           }
           return (
-            <motion.button key={i} onClick={() => pick(opt)} disabled={!!chosen}
+            <motion.button key={i} type="button" onClick={() => pick(opt)} disabled={!!chosen}
               className="p-3 rounded-xl text-center transition-colors duration-200"
               style={{ background: bg, border: `1px solid ${border}`, color: txtColor,
                 cursor: chosen ? 'default' : 'pointer',
@@ -385,9 +414,8 @@ function LeavesCanvas() {
   useEffect(() => {
     const canvas = ref.current; if (!canvas) return;
     const ctx = canvas.getContext('2d'); if (!ctx) return;
-    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
-    resize();
-    window.addEventListener('resize', resize);
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
     const leaves: Leaf[] = Array.from({ length: 22 }, () => ({
       x: Math.random() * 1200, y: Math.random() * 600 - 300,
       vx: (Math.random() - 0.5) * 0.5, vy: Math.random() * 0.6 + 0.25,
@@ -395,7 +423,6 @@ function LeavesCanvas() {
       size: Math.random() * 5 + 3, opacity: Math.random() * 0.35 + 0.08,
       color: LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)],
     }));
-    let raf: number;
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (const leaf of leaves) {
@@ -413,21 +440,25 @@ function LeavesCanvas() {
         ctx.fill();
         ctx.restore();
       }
-      raf = requestAnimationFrame(draw);
     };
-    draw();
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize); };
+    // Resizing a canvas wipes it, so paint again straight away.
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      draw();
+    };
+    window.addEventListener('resize', resize);
+    const stop = runWhileVisible(canvas, draw);
+    return () => { stop(); window.removeEventListener('resize', resize); };
   }, []);
-  return <canvas ref={ref} className="absolute inset-0 w-full h-full pointer-events-none opacity-60" />;
+  return <canvas ref={ref} aria-hidden="true" className="absolute inset-0 w-full h-full pointer-events-none opacity-60" />;
 }
 
 /* ─── Pulse dot ──────────────────────────────────────────── */
-function Pulse({ langId, active }: { langId: string; active: boolean }) {
+function Pulse({ langId, active }: { langId: LanguageId; active: boolean }) {
   if (!active) return null;
-  const d = FULL_PATHS[langId];
-  if (!d) return null;
   return (
-    <motion.path d={d} fill="none" stroke="rgba(201,168,76,0.95)"
+    <motion.path d={FULL_PATHS[langId]} fill="none" stroke="rgba(201,168,76,0.95)"
       strokeWidth={3} strokeLinecap="round" pathLength={1}
       strokeDasharray="0.06 1"
       animate={{ strokeDashoffset: [0.06, -1] }}
@@ -441,19 +472,19 @@ function Pulse({ langId, active }: { langId: string; active: boolean }) {
 type Tab = 'info' | 'quiz';
 
 export function LanguageTree() {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [hovered, setHovered]   = useState<string | null>(null);
+  const [selected, setSelected] = useState<LanguageId | null>(null);
+  const [hovered, setHovered]   = useState<LanguageId | null>(null);
   const [tab, setTab]           = useState<Tab>('info');
   const lang = LANGUAGES.find(l => l.id === selected);
 
-  const selectLang = (id: string) => {
+  const selectLang = (id: LanguageId) => {
     setSelected(prev => prev === id ? null : id);
     setTab('info');
   };
 
   return (
     <section id="languages" className="py-24 relative overflow-hidden"
-      style={{ background: 'var(--brand-bg)' }}>
+      style={{ background: 'var(--brand-bg-2)' }}>
       <LeavesCanvas />
       <div className="absolute inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 80%, rgba(26,61,38,0.38) 0%, transparent 70%)' }} />
@@ -463,22 +494,47 @@ export function LanguageTree() {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }} viewport={{ once: true }} className="text-center mb-10">
-          <p className="font-mono text-xs uppercase tracking-widest mb-3"
-            style={{ color: 'var(--brand-gold)', fontFamily: 'var(--font-mono, monospace)', letterSpacing: '0.2em' }}>
-            02 / Languages
-          </p>
           <h2 className="text-4xl sm:text-5xl font-bold tracking-tight" style={{ color: 'var(--brand-text)' }}>
             The Tree of <span className="text-gold-gradient">Tongues</span>
           </h2>
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed" style={{ color: 'var(--brand-muted)' }}>
-            6 languages · 4 scripts · 3 continents. Hover a fruit to feel the signal. Click to explore.
+            6 languages · 4 scripts. Pick one to read a sample, hear it and try a short quiz.
           </p>
         </motion.div>
 
-        {/* SVG Tree */}
+        {/*
+          Phones get plain buttons: the drawn tree shrinks until its labels
+          are a few pixels tall and its fruits are too small to tap.
+        */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:hidden">
+          {LANGUAGES_BY_LEVEL.map(l => {
+            const isSel = selected === l.id;
+            return (
+              <button key={l.id} type="button" onClick={() => selectLang(l.id)}
+                aria-pressed={isSel}
+                className="flex items-center gap-2.5 rounded-xl px-3 py-3 text-left transition-colors duration-150"
+                style={{
+                  background: isSel ? `${l.color}22` : 'rgba(10,26,15,0.85)',
+                  border: `1px solid ${isSel ? l.color : 'var(--brand-border)'}`,
+                }}>
+                <span className="text-2xl" aria-hidden="true">{l.flag}</span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold" style={{ color: isSel ? l.color : 'var(--brand-text)' }}>
+                    {l.name}
+                  </span>
+                  <span className="block text-xs" style={{ color: 'var(--brand-muted)' }}>{l.level}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* SVG Tree, from tablet width up */}
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.7, delay: 0.1 }} viewport={{ once: true }}>
-          <svg viewBox="0 0 780 435" className="w-full select-none" style={{ maxHeight: 435 }}>
+          transition={{ duration: 0.7, delay: 0.1 }} viewport={{ once: true }}
+          className="hidden md:block">
+          <svg viewBox="0 0 780 435" className="w-full select-none" style={{ maxHeight: 435 }}
+            role="group" aria-label="Language tree">
             <defs>
               <filter id="goldGlow" x="-50%" y="-50%" width="200%" height="200%">
                 <feGaussianBlur stdDeviation="3" result="blur" />
@@ -510,7 +566,7 @@ export function LanguageTree() {
             {(hovered || selected) && (() => {
               const activeId   = hovered || selected!;
               const activeLang = LANGUAGES.find(l => l.id === activeId);
-              if (!activeLang || !FULL_PATHS[activeId]) return null;
+              if (!activeLang) return null;
               return (
                 <motion.path d={FULL_PATHS[activeId]} fill="none" strokeLinecap="round"
                   stroke={`${activeLang.color}55`} strokeWidth={4}
@@ -527,53 +583,66 @@ export function LanguageTree() {
               const isSel  = selected === l.id;
               const isHov  = hovered === l.id;
               const active = isSel || isHov;
+              const filledBars = LEVEL_STEPS[l.level];
               return (
                 <motion.g key={l.id} style={{ cursor: 'pointer' }}
+                  role="button" tabIndex={0}
+                  aria-label={`${l.name}, ${l.level}`} aria-pressed={isSel}
                   initial={{ scale: 0, opacity: 0 }} whileInView={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.45, delay: 1.05 + i * 0.1 }} viewport={{ once: true }}
                   onClick={() => selectLang(l.id)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      selectLang(l.id);
+                    }
+                  }}
                   onMouseEnter={() => setHovered(l.id)}
-                  onMouseLeave={() => setHovered(null)}>
+                  onMouseLeave={() => setHovered(null)}
+                  onFocus={() => setHovered(l.id)}
+                  onBlur={() => setHovered(null)}>
+                  {/* Unseen circle that makes the fruit easier to hit */}
+                  <circle cx={l.cx} cy={l.cy} r={28} fill="transparent" />
                   {active && (
-                    <motion.circle cx={l.cx} cy={l.cy} r={28} fill="none"
+                    <motion.circle cx={l.cx} cy={l.cy} r={22} fill="none"
                       stroke={l.color} strokeWidth={1.2}
-                      animate={{ r: [22, 32], opacity: [0.6, 0] }}
+                      initial={{ scale: 1, opacity: 0.6 }}
+                      animate={{ scale: 1.45, opacity: 0 }}
                       transition={{ duration: 1.2, repeat: Infinity, ease: 'easeOut' }} />
                   )}
-                  <motion.circle cx={l.cx} cy={l.cy} r={active ? 21 : 17}
+                  <motion.circle cx={l.cx} cy={l.cy} r={17}
                     fill={isSel ? l.color : 'rgba(12,28,18,0.95)'}
                     stroke={l.color} strokeWidth={active ? 2 : 1.4}
                     filter={active ? 'url(#goldGlow)' : undefined}
-                    animate={{ r: active ? 21 : 17 }} transition={{ duration: 0.18 }} />
+                    animate={{ scale: active ? 1.24 : 1 }} transition={{ duration: 0.18 }} />
                   <text x={l.cx} y={l.cy + 6} textAnchor="middle"
                     fontSize={active ? '15' : '13'} style={{ userSelect: 'none' }}>
                     {l.flag}
                   </text>
-                  <text x={l.cx} y={l.cy + 36} textAnchor="middle" fontSize="8.5"
-                    fill={active ? l.color : 'rgba(122,170,136,0.7)'}
+                  <text x={l.cx} y={l.cy + 38} textAnchor="middle" fontSize="11"
+                    fill={active ? l.color : 'rgba(122,170,136,0.85)'}
                     fontFamily="var(--font-mono, monospace)" style={{ userSelect: 'none' }}>
                     {l.name}
                   </text>
-                  {/* Signal strength bars */}
-                  {(() => {
-                    const bars = getSignalBars(l.percent);
+                  {/* Level as signal bars: one bar per step of the level scale */}
+                  {[1,2,3,4].map((h, idx) => {
                     const bw = 2.5, gap = 1.5;
                     const totalW = 4 * bw + 3 * gap;
                     const sx = l.cx - totalW / 2;
-                    const by = l.cy + (active ? 56 : 46);
-                    return [1,2,3,4].map((h, idx) => (
+                    const by = l.cy + (active ? 60 : 51);
+                    return (
                       <rect key={idx}
                         x={sx + idx * (bw + gap)} y={by - h * 2.2}
                         width={bw} height={h * 2.2} rx={0.8}
-                        fill={idx < bars
+                        fill={idx < filledBars
                           ? (active ? l.color : 'rgba(122,170,136,0.45)')
                           : 'rgba(255,255,255,0.08)'}
                       />
-                    ));
-                  })()}
+                    );
+                  })}
                   {active && (
-                    <text x={l.cx} y={l.cy + 66} textAnchor="middle" fontSize="7"
-                      fill="rgba(122,170,136,0.5)" fontFamily="var(--font-mono, monospace)"
+                    <text x={l.cx} y={l.cy + 72} textAnchor="middle" fontSize="9"
+                      fill="rgba(122,170,136,0.7)" fontFamily="var(--font-mono, monospace)"
                       style={{ userSelect: 'none' }}>
                       {l.family}
                     </text>
@@ -582,7 +651,7 @@ export function LanguageTree() {
               );
             })}
 
-            <text x={390} y={425} textAnchor="middle" fontSize="9"
+            <text x={390} y={425} textAnchor="middle" fontSize="10"
               fill="rgba(201,168,76,0.5)" fontFamily="var(--font-mono, monospace)"
               style={{ userSelect: 'none' }}>
               Khurshidbek Urazaliev
@@ -593,8 +662,8 @@ export function LanguageTree() {
         <AnimatePresence>
           {!selected && (
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="text-center text-xs mt-2 mb-6" style={{ color: 'var(--brand-muted)' }}>
-              ↑ click any fruit to explore
+              className="hidden md:block text-center text-xs mt-2 mb-6" style={{ color: 'var(--brand-muted)' }}>
+              ↑ pick a fruit to explore
             </motion.p>
           )}
         </AnimatePresence>
@@ -607,7 +676,7 @@ export function LanguageTree() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 12, scale: 0.97 }}
               transition={{ duration: 0.32 }}
-              className="mx-auto max-w-2xl rounded-2xl p-6"
+              className="mx-auto mt-6 max-w-2xl rounded-2xl p-6 md:mt-0"
               style={{ background: 'rgba(10,26,15,0.92)', border: `1px solid ${lang.color}44`, boxShadow: `0 0 48px ${lang.color}12` }}>
 
               {/* Flag + name */}
@@ -636,7 +705,8 @@ export function LanguageTree() {
               <div className="flex gap-1 p-1 rounded-lg mb-5"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 {(['info', 'quiz'] as Tab[]).map(t => (
-                  <button key={t} onClick={() => setTab(t)}
+                  <button key={t} type="button" onClick={() => setTab(t)}
+                    aria-pressed={tab === t}
                     className="flex-1 py-1.5 rounded-md text-xs font-mono transition-all"
                     style={{
                       background: tab === t ? `${lang.color}22` : 'transparent',
@@ -657,20 +727,6 @@ export function LanguageTree() {
                   </motion.div>
                 ) : (
                   <motion.div key="info" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                    {/* Proficiency bar */}
-                    <div className="mb-4">
-                      <div className="flex justify-between text-xs mb-1.5">
-                        <span style={{ color: 'var(--brand-muted)' }}>Proficiency</span>
-                        <span style={{ color: lang.color }}>{lang.percent}%</span>
-                      </div>
-                      <div className="h-1.5 w-full rounded-full" style={{ background: 'rgba(255,255,255,0.07)' }}>
-                        <motion.div className="h-1.5 rounded-full"
-                          initial={{ width: 0 }} animate={{ width: `${lang.percent}%` }}
-                          transition={{ duration: 0.9, ease: 'easeOut' }}
-                          style={{ background: `linear-gradient(90deg, ${lang.color}77, ${lang.color})` }} />
-                      </div>
-                    </div>
-
                     {/* Sample sentence */}
                     <div className="p-3 rounded-lg mb-3"
                       style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -683,9 +739,9 @@ export function LanguageTree() {
                           }}>
                           {lang.sample}
                         </p>
-                        <button onClick={() => speak(lang.sample, lang.id)}
+                        <button type="button" onClick={() => speak(lang.sample, lang.id)}
                           className="text-lg opacity-60 hover:opacity-100 transition-opacity shrink-0 mt-0.5"
-                          title="Hear pronunciation">🔊</button>
+                          aria-label="Hear it" title="Hear it">🔊</button>
                       </div>
                       {lang.translation && (
                         <p className="text-xs mt-1" style={{ color: 'var(--brand-muted)' }}>{lang.translation}</p>

@@ -1,18 +1,8 @@
-export interface Project {
-  id: string;
+export interface SkillGroup {
   title: string;
-  description: string;
-  image?: string;
-  technologies: string[];
-  liveUrl?: string;
-  githubUrl?: string;
-  category: 'web' | 'ai' | 'business' | 'other';
-}
-
-export interface Skill {
-  name: string;
-  level: number; // 1-100
-  category: 'technical' | 'language' | 'soft';
+  tools: string[];
+  /** The projects these tools were used in, as one readable line. */
+  usedIn?: string;
 }
 
 export interface Experience {
@@ -22,12 +12,4 @@ export interface Experience {
   duration: string;
   description: string[];
   technologies?: string[];
-}
-
-export interface Achievement {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  category: 'academic' | 'professional' | 'personal';
 }

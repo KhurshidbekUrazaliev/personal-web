@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowDown, Download, ExternalLink, Github } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
+import { ArrowDown, Download, Github } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { runWhileVisible } from '@/lib/animation-loop';
+import { EDUCATION, LINKS, SITE } from '@/lib/site';
 
 /* ─── Particle canvas ────────────────────────────────────── */
 interface Particle {
@@ -18,9 +20,6 @@ interface Particle {
 
 function ParticleCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mouseRef = useRef({ x: -9999, y: -9999 });
-  const particlesRef = useRef<Particle[]>([]);
-  const rafRef = useRef<number>(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -31,16 +30,12 @@ function ParticleCanvas() {
     const COUNT = 90;
     const CONNECTION_DIST = 130;
     const MOUSE_DIST = 160;
+    const mouse = { x: -9999, y: -9999 };
 
-    const resize = () => {
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-    };
-    resize();
-    window.addEventListener('resize', resize);
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
 
-    // Init particles
-    particlesRef.current = Array.from({ length: COUNT }, () => ({
+    const particles: Particle[] = Array.from({ length: COUNT }, () => ({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
       vx: (Math.random() - 0.5) * 0.35,
@@ -50,11 +45,7 @@ function ParticleCanvas() {
     }));
 
     const draw = () => {
-      if (!canvas || !ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      const particles = particlesRef.current;
-      const mouse = mouseRef.current;
 
       // Update + draw dots
       for (const p of particles) {
@@ -67,7 +58,7 @@ function ParticleCanvas() {
         const dx = p.x - mouse.x;
         const dy = p.y - mouse.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < MOUSE_DIST) {
+        if (dist > 0 && dist < MOUSE_DIST) {
           const force = (MOUSE_DIST - dist) / MOUSE_DIST;
           p.vx += (dx / dist) * force * 0.04;
           p.vy += (dy / dist) * force * 0.04;
@@ -99,111 +90,32 @@ function ParticleCanvas() {
           }
         }
       }
-
-      rafRef.current = requestAnimationFrame(draw);
     };
 
-    draw();
-
+    // Resizing a canvas wipes it, so paint again straight away.
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      draw();
+    };
     const onMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
-      mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
     };
+
+    window.addEventListener('resize', resize);
     canvas.addEventListener('mousemove', onMouseMove);
+    const stop = runWhileVisible(canvas, draw);
 
     return () => {
-      cancelAnimationFrame(rafRef.current);
+      stop();
       window.removeEventListener('resize', resize);
       canvas.removeEventListener('mousemove', onMouseMove);
     };
   }, []);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ pointerEvents: 'auto' }}
-    />
-  );
-}
-
-/* ─── Terminal intro ─────────────────────────────────────── */
-const TERMINAL_LINES = [
-  { prefix: '❯ ', text: 'whoami', delay: 0, type: 'cmd' },
-  { prefix: '',  text: 'khurshidbek_urazaliev', delay: 420, type: 'output' },
-  { prefix: '❯ ', text: 'cat identity.json', delay: 900, type: 'cmd' },
-  { prefix: '',  text: '{', delay: 1260, type: 'output' },
-  { prefix: '',  text: '  "role":      "AI & Tech Innovator",', delay: 1460, type: 'output' },
-  { prefix: '',  text: '  "location":  "Busan, South Korea 🇰🇷",', delay: 1640, type: 'output' },
-  { prefix: '',  text: '  "languages": ["uz","en","ko","ru","tr","ar"],', delay: 1820, type: 'output' },
-  { prefix: '',  text: '  "mission":   "build · learn · give back"', delay: 2020, type: 'output' },
-  { prefix: '',  text: '}', delay: 2200, type: 'output' },
-  { prefix: '❯ ', text: 'initializing portfolio…', delay: 2600, type: 'cmd' },
-];
-
-function TypedLine({ text, prefix, onDone, isCmd }: {
-  text: string; prefix: string; onDone?: () => void; isCmd: boolean;
-}) {
-  const [shown, setShown] = useState('');
-
-  useEffect(() => {
-    let i = 0;
-    const full = prefix + text;
-    const iv = setInterval(() => {
-      i++;
-      setShown(full.slice(0, i));
-      if (i >= full.length) { clearInterval(iv); onDone?.(); }
-    }, isCmd ? 55 : 18);
-    return () => clearInterval(iv);
-  }, [text, prefix, isCmd, onDone]);
-
-  return (
-    <div className={isCmd ? 'text-[var(--brand-gold)]' : 'text-[var(--brand-text)]'}>
-      {shown}
-      {shown.length < (prefix + text).length && (
-        <span className="inline-block w-[7px] h-[14px] bg-[var(--brand-gold)] ml-0.5 animate-pulse align-middle" />
-      )}
-    </div>
-  );
-}
-
-function Terminal({ onDone }: { onDone: () => void }) {
-  const [visibleLines, setVisibleLines] = useState<number[]>([]);
-
-  useEffect(() => {
-    TERMINAL_LINES.forEach((line, i) => {
-      setTimeout(() => {
-        setVisibleLines(prev => [...prev, i]);
-        if (i === TERMINAL_LINES.length - 1) {
-          setTimeout(onDone, 820);
-        }
-      }, line.delay);
-    });
-  }, [onDone]);
-
-  return (
-    <div
-      className="font-mono text-[13px] leading-7 w-full max-w-xl mx-auto"
-      style={{ fontFamily: 'var(--font-mono, "JetBrains Mono", monospace)' }}
-    >
-      {/* Terminal header bar */}
-      <div className="flex items-center gap-1.5 mb-3 pb-2 border-b border-[var(--brand-border)]">
-        <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
-        <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]" />
-        <span className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
-        <span className="ml-3 text-[var(--brand-muted)] text-[11px]">khurshidbek — zsh</span>
-      </div>
-
-      {visibleLines.map(i => (
-        <TypedLine
-          key={i}
-          prefix={TERMINAL_LINES[i].prefix}
-          text={TERMINAL_LINES[i].text}
-          isCmd={TERMINAL_LINES[i].type === 'cmd'}
-        />
-      ))}
-    </div>
-  );
+  return <canvas ref={canvasRef} aria-hidden="true" className="absolute inset-0 w-full h-full" />;
 }
 
 /* ─── Stats ──────────────────────────────────────────────── */
@@ -235,9 +147,7 @@ function SessionTimer() {
 
 /* ─── Main Hero ──────────────────────────────────────────── */
 export function Hero() {
-  const [phase, setPhase] = useState<'terminal' | 'hero'>('terminal');
   const [imageError, setImageError] = useState(false);
-  const handleTerminalDone = useCallback(() => setPhase('hero'), []);
 
   return (
     <section
@@ -245,7 +155,6 @@ export function Hero() {
       className="relative flex min-h-screen items-center justify-center overflow-hidden"
       style={{ background: 'var(--brand-bg)' }}
     >
-      {/* Particle canvas — always visible */}
       <ParticleCanvas />
 
       {/* Radial glow behind content */}
@@ -267,227 +176,174 @@ export function Hero() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-4xl px-6 py-20 w-full">
-        {/* ── Terminal phase ── */}
-        <AnimatePresence>
-          {phase === 'terminal' && (
-            <motion.div
-              key="terminal"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -16, transition: { duration: 0.5 } }}
-              transition={{ duration: 0.4 }}
-              className="rounded-xl border border-[var(--brand-border)] px-6 py-5"
-              style={{ background: 'rgba(11,26,15,0.85)', backdropFilter: 'blur(12px)' }}
+      {/*
+        The name, role and buttons are plain markup with no entrance animation,
+        so they are in the first paint and in the HTML that search engines read.
+      */}
+      <div className="relative z-10 mx-auto max-w-4xl px-6 py-20 w-full text-center">
+        {/* Profile image */}
+        <div className="mx-auto mb-7 relative" style={{ width: 120, height: 120 }}>
+          {/* Gold ring */}
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{
+              background: 'conic-gradient(from 0deg, var(--brand-gold), var(--brand-green-lit), var(--brand-gold))',
+              padding: 2,
+            }}
+          >
+            <div
+              className="w-full h-full rounded-full overflow-hidden"
+              style={{ background: 'var(--brand-bg)' }}
             >
-              <Terminal onDone={handleTerminalDone} />
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ── Hero phase ── */}
-        <AnimatePresence>
-          {phase === 'hero' && (
-            <motion.div
-              key="hero"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              className="text-center"
-            >
-              {/* Profile image */}
-              <motion.div
-                initial={{ scale: 0.6, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.55, delay: 0.1 }}
-                className="mx-auto mb-7 relative"
-                style={{ width: 120, height: 120 }}
-              >
-                {/* Gold ring */}
-                <div
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    background: 'conic-gradient(from 0deg, var(--brand-gold), var(--brand-green-lit), var(--brand-gold))',
-                    padding: 2,
-                    borderRadius: '50%',
-                  }}
-                >
-                  <div
-                    className="w-full h-full rounded-full overflow-hidden"
-                    style={{ background: 'var(--brand-bg)' }}
-                  >
-                    {!imageError ? (
-                      <Image
-                        src="/images/profile/profile.jpg"
-                        alt="Khurshidbek Urazaliev"
-                        width={116}
-                        height={116}
-                        className="w-full h-full object-cover"
-                        onError={() => setImageError(true)}
-                        priority
-                      />
-                    ) : (
-                      <div
-                        className="w-full h-full flex items-center justify-center text-3xl font-bold"
-                        style={{ color: 'var(--brand-gold)', background: 'var(--brand-bg-2)' }}
-                      >
-                        K
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Orbit ring animation */}
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
-                  className="absolute"
-                  style={{ inset: -8, borderRadius: '50%', border: '1px dashed rgba(201,168,76,0.28)' }}
+              {!imageError ? (
+                <Image
+                  src="/images/profile/profile.jpg"
+                  alt={SITE.name}
+                  width={116}
+                  height={116}
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                  priority
                 />
-              </motion.div>
-
-              {/* Name */}
-              <motion.h1
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.18 }}
-                whileHover={{ x: [0, -2, 2, -1, 1, 0], transition: { duration: 0.35 } }}
-                className="text-5xl sm:text-7xl font-bold tracking-tight cursor-default select-none"
-                style={{ color: 'var(--brand-text)', letterSpacing: '-0.02em' }}
-              >
-                Khurshidbek
-                <br />
-                <span className="text-gold-gradient">Urazaliev</span>
-              </motion.h1>
-
-              {/* Mono tagline */}
-              <motion.p
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.28 }}
-                className="mt-5 font-mono text-sm sm:text-base tracking-widest uppercase"
-                style={{
-                  color: 'var(--brand-gold)',
-                  fontFamily: 'var(--font-mono, monospace)',
-                  letterSpacing: '0.18em',
-                }}
-              >
-                AI · Tech · Languages · Faith
-              </motion.p>
-
-              {/* Description */}
-              <motion.p
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.36 }}
-                className="mt-5 max-w-xl mx-auto text-base sm:text-lg leading-relaxed"
-                style={{ color: 'var(--brand-muted)' }}
-              >
-                Building technology that matters. From Besharyk to Busan —
-                driven by curiosity, faith, and the will to create real leverage.
-              </motion.p>
-
-              {/* CTA buttons */}
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.44 }}
-                className="mt-9 flex flex-wrap items-center justify-center gap-3"
-              >
-                <Link
-                  href="#projects"
-                  className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-[1.03]"
-                  style={{
-                    background: 'var(--brand-gold)',
-                    color: 'var(--brand-bg)',
-                  }}
+              ) : (
+                <div
+                  className="w-full h-full flex items-center justify-center text-3xl font-bold"
+                  style={{ color: 'var(--brand-gold)', background: 'var(--brand-bg-2)' }}
                 >
-                  View Projects
-                  <ExternalLink className="h-4 w-4" />
-                </Link>
+                  K
+                </div>
+              )}
+            </div>
+          </div>
 
-                <Link
-                  href="https://github.com/KhurshidbekUrazaliev"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-[1.03]"
-                  style={{
-                    border: '1px solid var(--brand-border-hi)',
-                    color: 'var(--brand-text)',
-                    background: 'rgba(26,61,38,0.35)',
-                  }}
-                >
-                  <Github className="h-4 w-4" />
-                  GitHub
-                </Link>
+          {/* Orbit ring animation */}
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
+            className="absolute"
+            style={{ inset: -8, borderRadius: '50%', border: '1px dashed rgba(201,168,76,0.28)' }}
+          />
+        </div>
 
-                <a
-                  href="/resume.pdf"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-[1.03]"
-                  style={{
-                    border: '1px solid var(--brand-border)',
-                    color: 'var(--brand-muted)',
-                    background: 'transparent',
-                  }}
-                >
-                  <Download className="h-4 w-4" />
-                  Resume
-                </a>
-              </motion.div>
+        <h1
+          className="text-5xl sm:text-7xl font-bold tracking-tight"
+          style={{ color: 'var(--brand-text)', letterSpacing: '-0.02em' }}
+        >
+          Khurshidbek
+          <br />
+          <span className="text-gold-gradient">Urazaliev</span>
+        </h1>
 
-              {/* Stats bar */}
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.56 }}
-                className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-px"
-                style={{ border: '1px solid var(--brand-border)', borderRadius: 12, overflow: 'hidden' }}
+        {/* What I do, in one line */}
+        <p
+          className="mt-6 mx-auto text-lg sm:text-xl font-medium leading-snug text-balance"
+          style={{ color: 'var(--brand-text)' }}
+        >
+          {SITE.role} at{' '}
+          <a
+            href={SITE.companyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="whitespace-nowrap underline decoration-1 underline-offset-4"
+            style={{ color: 'var(--brand-gold)' }}
+          >
+            {SITE.company}
+          </a>{' '}
+          and{' '}
+          {EDUCATION.field} student at{' '}
+          <abbr title={EDUCATION.school} className="no-underline">{EDUCATION.schoolShort}</abbr>.
+        </p>
+
+        <p
+          className="mt-4 max-w-2xl mx-auto text-base sm:text-lg leading-relaxed text-balance"
+          style={{ color: 'var(--brand-muted)' }}
+        >
+          I build web apps, mobile apps and AI tools with React, Next.js and Python.
+        </p>
+
+        {/* CTA buttons */}
+        <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="#projects"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-[1.03]"
+            style={{
+              background: 'var(--brand-gold)',
+              color: 'var(--brand-bg)',
+            }}
+          >
+            View Projects
+            <ArrowDown className="h-4 w-4" aria-hidden="true" />
+          </Link>
+
+          <a
+            href={LINKS.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-[1.03]"
+            style={{
+              border: '1px solid var(--brand-border-hi)',
+              color: 'var(--brand-text)',
+              background: 'rgba(26,61,38,0.35)',
+            }}
+          >
+            <Github className="h-4 w-4" aria-hidden="true" />
+            GitHub
+          </a>
+
+          <a
+            href="/resume.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-[1.03]"
+            style={{
+              border: '1px solid var(--brand-border)',
+              color: 'var(--brand-muted)',
+              background: 'transparent',
+            }}
+          >
+            <Download className="h-4 w-4" aria-hidden="true" />
+            Resume
+          </a>
+        </div>
+
+        {/* Stats bar */}
+        <div
+          className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-px"
+          style={{ border: '1px solid var(--brand-border)', borderRadius: 12, overflow: 'hidden' }}
+        >
+          {STATIC_STATS.map((s, i) => (
+            <div
+              key={s.label}
+              className="py-5 px-3 text-center"
+              style={{
+                background: i % 2 === 0 ? 'rgba(15,33,21,0.9)' : 'rgba(11,26,15,0.9)',
+                borderRight: '1px solid var(--brand-border)',
+              }}
+            >
+              <div
+                className="text-2xl font-bold text-gold-gradient"
+                style={{ fontFamily: 'var(--font-mono, monospace)' }}
               >
-                {STATIC_STATS.map((s, i) => (
-                  <div
-                    key={s.label}
-                    className="py-5 px-3 text-center"
-                    style={{
-                      background: i % 2 === 0 ? 'rgba(15,33,21,0.9)' : 'rgba(11,26,15,0.9)',
-                      borderRight: '1px solid var(--brand-border)',
-                    }}
-                  >
-                    <div
-                      className="text-2xl font-bold text-gold-gradient"
-                      style={{ fontFamily: 'var(--font-mono, monospace)' }}
-                    >
-                      {s.value}
-                    </div>
-                    <div className="text-xs mt-1" style={{ color: 'var(--brand-muted)' }}>
-                      {s.label}
-                    </div>
-                  </div>
-                ))}
-                <SessionTimer />
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                {s.value}
+              </div>
+              <div className="text-xs mt-1" style={{ color: 'var(--brand-muted)' }}>
+                {s.label}
+              </div>
+            </div>
+          ))}
+          <SessionTimer />
+        </div>
       </div>
 
       {/* Scroll indicator */}
-      {phase === 'hero' && (
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 pointer-events-none" aria-hidden="true">
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.4 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
         >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <ArrowDown className="h-5 w-5" style={{ color: 'var(--brand-gold-dim)' }} />
-          </motion.div>
+          <ArrowDown className="h-5 w-5" style={{ color: 'var(--brand-gold-dim)' }} />
         </motion.div>
-      )}
+      </div>
     </section>
   );
 }

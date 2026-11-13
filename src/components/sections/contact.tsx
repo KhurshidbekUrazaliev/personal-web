@@ -3,13 +3,22 @@
 import { motion } from 'framer-motion';
 import { Mail, MapPin, Github, Linkedin, Send, Instagram } from 'lucide-react';
 import { useState } from 'react';
+import {
+  EMAILS,
+  LINKS,
+  MAILTO_BOTH,
+  SITE,
+  WEB3FORMS_ACCESS_KEY,
+} from '@/lib/site';
 
 const CONTACT_METHODS = [
-  { icon: Mail,      label: 'Email',     value: 'khurshidbekurazaliev@gmail.com', href: 'mailto:khurshidbekurazaliev@gmail.com', color: '#C9A84C' },
-  { icon: Linkedin,  label: 'LinkedIn',  value: 'linkedin.com/in/khurshidbekurazaliev', href: 'https://www.linkedin.com/in/khurshidbekurazaliev', color: '#7AB8F5' },
-  { icon: Github,    label: 'GitHub',    value: 'KhurshidbekUrazaliev', href: 'https://github.com/KhurshidbekUrazaliev', color: '#A8D5A2' },
-  { icon: Instagram, label: 'Instagram', value: '@cfarisc19', href: 'https://www.instagram.com/cfarisc19/', color: '#E8A87C' },
-  { icon: MapPin,    label: 'Location',  value: 'Busan, South Korea 🇰🇷', href: null, color: '#3D8A5A' },
+  { icon: Mail,      label: 'Email',     value: EMAILS.primary,                          href: `mailto:${EMAILS.primary}`,   color: '#C9A84C' },
+  { icon: Mail,      label: 'Email',     value: EMAILS.secondary,                        href: `mailto:${EMAILS.secondary}`, color: '#C9A84C' },
+  { icon: Send,      label: 'Telegram',  value: '@lu3frv',                               href: LINKS.telegram,               color: '#7AB8F5' },
+  { icon: Linkedin,  label: 'LinkedIn',  value: 'linkedin.com/in/khurshidbekurazaliev',  href: LINKS.linkedin,               color: '#7AB8F5' },
+  { icon: Github,    label: 'GitHub',    value: 'KhurshidbekUrazaliev',                  href: LINKS.github,                 color: '#A8D5A2' },
+  { icon: Instagram, label: 'Instagram', value: '@cfarisc19',                            href: LINKS.instagram,              color: '#E8A87C' },
+  { icon: MapPin,    label: 'Location',  value: `${SITE.location} 🇰🇷`,                   href: null,                         color: '#3D8A5A' },
 ];
 
 const COLLAB_AREAS = [
@@ -19,28 +28,69 @@ const COLLAB_AREAS = [
   { title: 'Language Coaching',desc: 'Uzbek, English, Korean, Russian, Arabic',         tags: ['Uzbek', 'English', 'Korean', 'Multilingual'] },
 ];
 
-type FormStatus = 'idle' | 'sending' | 'sent';
+/**
+ * idle     – nothing sent yet
+ * sending  – waiting for Web3Forms
+ * sent     – Web3Forms confirmed the message
+ * mail-app – no access key is set, so the visitor's mail app was opened
+ * error    – the request failed
+ */
+type FormStatus = 'idle' | 'sending' | 'sent' | 'mail-app' | 'error';
+
+const EMPTY_FORM = { name: '', email: '', subject: '', message: '' };
+type FormValues = typeof EMPTY_FORM;
+
+/** A ready-to-send draft in the visitor's own mail app, to both inboxes. */
+function mailAppLink(form: FormValues) {
+  const body = `${form.message}\n\n${form.name}\n${form.email}`;
+  return `${MAILTO_BOTH}?subject=${encodeURIComponent(form.subject)}&body=${encodeURIComponent(body)}`;
+}
+
+async function sendThroughWeb3Forms(form: FormValues) {
+  const response = await fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      access_key: WEB3FORMS_ACCESS_KEY,
+      from_name: `${SITE.domain} contact form`,
+      subject: `[${SITE.domain}] ${form.subject}`,
+      name: form.name,
+      email: form.email,
+      message: form.message,
+    }),
+  });
+  const result: { success?: boolean } = await response.json();
+  if (!result.success) throw new Error('Web3Forms did not accept the message');
+}
 
 export function Contact() {
-  const [form, setForm]     = useState({ name: '', email: '', subject: '', message: '' });
+  const [form, setForm]     = useState<FormValues>(EMPTY_FORM);
   const [status, setStatus] = useState<FormStatus>('idle');
+  // A field people never see. Bots fill it in, and then nothing is sent.
+  const [trap, setTrap]     = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const update = (field: keyof FormValues) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm(f => ({ ...f, [field]: e.target.value }));
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setStatus('sending');
-    setTimeout(() => { setStatus('sent'); setForm({ name: '', email: '', subject: '', message: '' }); }, 1800);
-  };
+    if (trap) { setStatus('sent'); return; }
 
-  const inputStyle = {
-    background: 'rgba(10,26,15,0.8)',
-    border: '1px solid var(--brand-border)',
-    color: 'var(--brand-text)',
-    borderRadius: 8,
-    padding: '10px 14px',
-    width: '100%',
-    fontSize: '0.875rem',
-    outline: 'none',
-    transition: 'border-color 0.15s',
+    if (!WEB3FORMS_ACCESS_KEY) {
+      window.open(mailAppLink(form), '_self');
+      setStatus('mail-app');
+      return;
+    }
+
+    setStatus('sending');
+    try {
+      await sendThroughWeb3Forms(form);
+      setForm(EMPTY_FORM);
+      setStatus('sent');
+    } catch {
+      setStatus('error');
+    }
   };
 
   return (
@@ -50,10 +100,6 @@ export function Contact() {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }} viewport={{ once: true }} className="text-center mb-16">
-          <p className="font-mono text-xs uppercase tracking-widest mb-3"
-            style={{ color: 'var(--brand-gold)', fontFamily: 'var(--font-mono,monospace)', letterSpacing: '0.2em' }}>
-            06 / Contact
-          </p>
           <h2 className="text-4xl sm:text-5xl font-bold tracking-tight" style={{ color: 'var(--brand-text)' }}>
             Let&apos;s <span className="text-gold-gradient">Collaborate</span>
           </h2>
@@ -72,24 +118,46 @@ export function Contact() {
               Get in Touch
             </h3>
             <div className="space-y-3 mb-10">
-              {CONTACT_METHODS.map((m, i) => (
-                <motion.div key={m.label}
-                  initial={{ opacity: 0, x: -12 }} whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.35, delay: 0.15 + i * 0.07 }} viewport={{ once: true }}
-                  className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-200 ${m.href ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}
-                  style={{ background: 'rgba(15,33,21,0.7)', border: '1px solid var(--brand-border)' }}
-                  onClick={() => m.href && window.open(m.href, '_blank')}
-                >
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                    style={{ background: `${m.color}18`, border: `1px solid ${m.color}33` }}>
-                    <m.icon className="h-4.5 w-4.5" style={{ color: m.color, width: 18, height: 18 }} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs mb-0.5" style={{ color: 'var(--brand-muted)' }}>{m.label}</p>
-                    <p className="text-sm font-medium truncate" style={{ color: 'var(--brand-text)' }}>{m.value}</p>
-                  </div>
-                </motion.div>
-              ))}
+              {CONTACT_METHODS.map((m, i) => {
+                const reveal = {
+                  initial: { opacity: 0, x: -12 },
+                  whileInView: { opacity: 1, x: 0 },
+                  transition: { duration: 0.35, delay: 0.15 + i * 0.07 },
+                  viewport: { once: true },
+                  style: { background: 'rgba(15,33,21,0.7)', border: '1px solid var(--brand-border)' },
+                };
+                const content = (
+                  <>
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ background: `${m.color}18`, border: `1px solid ${m.color}33` }}>
+                      <m.icon aria-hidden="true" style={{ color: m.color, width: 18, height: 18 }} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs mb-0.5" style={{ color: 'var(--brand-muted)' }}>{m.label}</p>
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--brand-text)' }}>{m.value}</p>
+                    </div>
+                  </>
+                );
+
+                if (!m.href) {
+                  return (
+                    <motion.div key={m.value} {...reveal} className="flex items-center gap-4 p-3 rounded-xl">
+                      {content}
+                    </motion.div>
+                  );
+                }
+
+                // Web links open in a new tab; mail links hand over to the mail app.
+                const newTab = m.href.startsWith('http')
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {};
+                return (
+                  <motion.a key={m.value} href={m.href} {...newTab} {...reveal}
+                    className="flex items-center gap-4 p-3 rounded-xl transition-all duration-200 hover:-translate-y-0.5">
+                    {content}
+                  </motion.a>
+                );
+              })}
             </div>
 
             <h3 className="text-lg font-semibold mb-5" style={{ color: 'var(--brand-text)' }}>
@@ -127,12 +195,13 @@ export function Contact() {
 
             {status === 'sent' ? (
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                role="status"
                 className="rounded-2xl p-10 text-center"
                 style={{ background: 'rgba(61,138,90,0.12)', border: '1px solid rgba(61,138,90,0.3)' }}>
-                <div className="text-4xl mb-3">✅</div>
+                <div className="text-4xl mb-3" aria-hidden="true">✅</div>
                 <h4 className="text-lg font-semibold mb-2" style={{ color: 'var(--brand-text)' }}>Message sent!</h4>
-                <p className="text-sm" style={{ color: 'var(--brand-muted)' }}>I&apos;ll reply within 24 hours.</p>
-                <button onClick={() => setStatus('idle')} className="mt-6 text-xs px-4 py-2 rounded-lg transition-all hover:scale-105"
+                <p className="text-sm" style={{ color: 'var(--brand-muted)' }}>Thank you. I will write back soon.</p>
+                <button type="button" onClick={() => setStatus('idle')} className="mt-6 text-xs px-4 py-2 rounded-lg transition-all hover:scale-105"
                   style={{ background: 'rgba(201,168,76,0.12)', border: '1px solid var(--brand-border)', color: 'var(--brand-gold)' }}>
                   Send another
                 </button>
@@ -141,48 +210,62 @@ export function Contact() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-xs mb-1.5" style={{ color: 'var(--brand-muted)' }}>Name</label>
-                    <input type="text" required value={form.name}
-                      onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                      placeholder="Your name" style={inputStyle}
-                      onFocus={e => (e.target.style.borderColor = 'rgba(201,168,76,0.5)')}
-                      onBlur={e => (e.target.style.borderColor = 'var(--brand-border)')} />
+                    <label htmlFor="contact-name" className="block text-xs mb-1.5" style={{ color: 'var(--brand-muted)' }}>Name</label>
+                    <input id="contact-name" name="name" type="text" required autoComplete="name"
+                      value={form.name} onChange={update('name')}
+                      placeholder="Your name" className="field" />
                   </div>
                   <div>
-                    <label className="block text-xs mb-1.5" style={{ color: 'var(--brand-muted)' }}>Email</label>
-                    <input type="email" required value={form.email}
-                      onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                      placeholder="you@example.com" style={inputStyle}
-                      onFocus={e => (e.target.style.borderColor = 'rgba(201,168,76,0.5)')}
-                      onBlur={e => (e.target.style.borderColor = 'var(--brand-border)')} />
+                    <label htmlFor="contact-email" className="block text-xs mb-1.5" style={{ color: 'var(--brand-muted)' }}>Email</label>
+                    <input id="contact-email" name="email" type="email" required autoComplete="email"
+                      value={form.email} onChange={update('email')}
+                      placeholder="you@example.com" className="field" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs mb-1.5" style={{ color: 'var(--brand-muted)' }}>Subject</label>
-                  <input type="text" required value={form.subject}
-                    onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
-                    placeholder="What's this about?" style={inputStyle}
-                    onFocus={e => (e.target.style.borderColor = 'rgba(201,168,76,0.5)')}
-                    onBlur={e => (e.target.style.borderColor = 'var(--brand-border)')} />
+                  <label htmlFor="contact-subject" className="block text-xs mb-1.5" style={{ color: 'var(--brand-muted)' }}>Subject</label>
+                  <input id="contact-subject" name="subject" type="text" required
+                    value={form.subject} onChange={update('subject')}
+                    placeholder="What's this about?" className="field" />
                 </div>
                 <div>
-                  <label className="block text-xs mb-1.5" style={{ color: 'var(--brand-muted)' }}>Message</label>
-                  <textarea required rows={6} value={form.message}
-                    onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
+                  <label htmlFor="contact-message" className="block text-xs mb-1.5" style={{ color: 'var(--brand-muted)' }}>Message</label>
+                  <textarea id="contact-message" name="message" required rows={6}
+                    value={form.message} onChange={update('message')}
                     placeholder="Tell me about your project, idea, or how we can work together…"
-                    style={{ ...inputStyle, resize: 'none' }}
-                    onFocus={e => (e.target.style.borderColor = 'rgba(201,168,76,0.5)')}
-                    onBlur={e => (e.target.style.borderColor = 'var(--brand-border)')} />
+                    className="field" style={{ resize: 'none' }} />
                 </div>
+
+                {/* Spam trap: off screen, skipped by keyboards and screen readers. */}
+                <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
+                  <label htmlFor="contact-website">Leave this field empty</label>
+                  <input id="contact-website" name="website" type="text" tabIndex={-1} autoComplete="off"
+                    value={trap} onChange={e => setTrap(e.target.value)} />
+                </div>
+
                 <button type="submit" disabled={status === 'sending'}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold transition-all hover:scale-[1.02] disabled:opacity-60"
                   style={{ background: 'var(--brand-gold)', color: 'var(--brand-bg)' }}>
                   {status === 'sending' ? (
                     <><div className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />Sending…</>
                   ) : (
-                    <><Send className="h-4 w-4" />Send Message</>
+                    <><Send className="h-4 w-4" aria-hidden="true" />Send Message</>
                   )}
                 </button>
+
+                {status === 'mail-app' && (
+                  <p role="status" className="text-sm leading-relaxed" style={{ color: 'var(--brand-muted)' }}>
+                    Your mail app should now be open with this message ready to send.
+                    If nothing opened, write to me at{' '}
+                    <a href={`mailto:${EMAILS.primary}`} className="underline" style={{ color: 'var(--brand-gold)' }}>{EMAILS.primary}</a>.
+                  </p>
+                )}
+                {status === 'error' && (
+                  <p role="alert" className="text-sm leading-relaxed" style={{ color: '#FF8A80' }}>
+                    The message could not be sent. Please try again, or write to me at{' '}
+                    <a href={`mailto:${EMAILS.primary}`} className="underline" style={{ color: 'var(--brand-gold)' }}>{EMAILS.primary}</a>.
+                  </p>
+                )}
               </form>
             )}
 
@@ -195,12 +278,12 @@ export function Contact() {
                 Ready to build something that matters?
               </h4>
               <p className="text-xs mb-4" style={{ color: 'var(--brand-muted)' }}>
-                From a 19-year-old in Busan chasing 1600 SAT and 2000 ELO — I build fast, think hard, and care about the work.
+                I&apos;m a software engineer and student in Busan. I build fast, think hard, and care about the work.
               </p>
-              <a href="mailto:khurshidbekurazaliev@gmail.com"
+              <a href={MAILTO_BOTH}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all hover:scale-105"
                 style={{ background: 'var(--brand-gold)', color: 'var(--brand-bg)' }}>
-                <Mail className="h-4 w-4" />
+                <Mail className="h-4 w-4" aria-hidden="true" />
                 Start a Conversation
               </a>
             </motion.div>

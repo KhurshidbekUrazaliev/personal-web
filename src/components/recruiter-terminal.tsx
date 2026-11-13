@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { EDUCATION, EMAILS, LINKS, SITE } from '@/lib/site';
 
 const SECRET = 'sudo hire khurshidbek';
 
@@ -11,45 +12,42 @@ const SEQUENCE = [
   { delay: 1400, text: 'Initializing candidate profile...',               type: 'output'   },
   { delay: 2000, text: '❯ cat khurshidbek.json',                          type: 'cmd'      },
   { delay: 2500, text: 'Running deep scan...',                            type: 'output'   },
-  { delay: 3000, text: '[✓] Name .............. Khurshidbek Urazaliev',   type: 'result'   },
-  { delay: 3300, text: '[✓] Location .......... Busan, South Korea 🇰🇷',  type: 'result'   },
-  { delay: 3600, text: '[✓] Languages ......... 6  (uz · en · ko · ru · tr · ar)', type: 'result' },
-  { delay: 3900, text: '[✓] IELTS ............. 7.5 Band',                type: 'result'   },
-  { delay: 4200, text: '[✓] SAT ............... 1400+ → targeting 1600',  type: 'result'   },
-  { delay: 4500, text: '[✓] Chess ELO target .. 2000',                    type: 'result'   },
-  { delay: 4800, text: '[✓] Stack ............. React · Next.js · Python · AI', type: 'result' },
-  { delay: 5100, text: '[✓] Faith-driven ...... true',                    type: 'result'   },
-  { delay: 5400, text: '[✓] Adaptability ...... HIGH',                    type: 'result'   },
-  { delay: 5700, text: '[✓] Remote-ready ...... true',                    type: 'result'   },
-  { delay: 6100, text: '❯ generate --recommendation',                     type: 'cmd'      },
-  { delay: 6700, text: 'Analyzing data...',                               type: 'output'   },
-  { delay: 7200, text: '█████████████████████████████████ 100%',          type: 'progress' },
-  { delay: 7800, text: '',                                                 type: 'spacer'   },
-  { delay: 7900, text: '╔══════════════════════════════════════╗',        type: 'border'   },
-  { delay: 8000, text: '║   VERDICT: HIRE IMMEDIATELY  ✓       ║',       type: 'final'    },
-  { delay: 8100, text: '╚══════════════════════════════════════╝',        type: 'border'   },
-  { delay: 8400, text: '',                                                 type: 'spacer'   },
-  { delay: 8500, text: 'Contact: khurshidbekurazaliev@gmail.com',         type: 'contact'  },
-  { delay: 8800, text: 'GitHub:  github.com/KhurshidbekUrazaliev',        type: 'contact'  },
+  { delay: 3000, text: `[✓] Name .............. ${SITE.name}`,            type: 'result'   },
+  { delay: 3300, text: `[✓] Role .............. ${SITE.role} @ ${SITE.company}`, type: 'result' },
+  { delay: 3600, text: `[✓] Studies ........... ${EDUCATION.field}`,      type: 'result'   },
+  { delay: 3900, text: `[✓] Location .......... ${SITE.location} 🇰🇷`,     type: 'result'   },
+  { delay: 4200, text: '[✓] Languages ......... 6  (uz · en · ko · ru · ar · tr)', type: 'result' },
+  { delay: 4500, text: '[✓] Stack ............. React · Next.js · React Native · Python', type: 'result' },
+  { delay: 4800, text: '[✓] Faith-driven ...... true',                    type: 'result'   },
+  { delay: 5100, text: '[✓] Adaptability ...... HIGH',                    type: 'result'   },
+  { delay: 5400, text: '[✓] Remote-ready ...... true',                    type: 'result'   },
+  { delay: 5800, text: '❯ generate --recommendation',                     type: 'cmd'      },
+  { delay: 6400, text: 'Analyzing data...',                               type: 'output'   },
+  { delay: 6900, text: '█████████████████████████████████ 100%',          type: 'progress' },
+  { delay: 7500, text: '',                                                 type: 'spacer'   },
+  { delay: 7600, text: '╔══════════════════════════════════════╗',        type: 'border'   },
+  { delay: 7700, text: '║   VERDICT: HIRE IMMEDIATELY  ✓       ║',       type: 'final'    },
+  { delay: 7800, text: '╚══════════════════════════════════════╝',        type: 'border'   },
+  { delay: 8100, text: '',                                                 type: 'spacer'   },
+  { delay: 8200, text: `Contact:  ${EMAILS.primary}`,                     type: 'contact'  },
+  { delay: 8400, text: `Telegram: ${LINKS.telegram.replace('https://', '')}`, type: 'contact' },
+  { delay: 8600, text: `GitHub:   ${LINKS.github.replace('https://', '')}`,   type: 'contact' },
 ];
 
+/** Types `text` out one character at a time, once, from when the line appears. */
 function useTypewriter(text: string, speed = 30) {
-  const [shown, setShown] = useState('');
+  const [count, setCount] = useState(0);
   useEffect(() => {
-    setShown('');
-    let i = 0;
-    const iv = setInterval(() => {
-      i++;
-      setShown(text.slice(0, i));
-      if (i >= text.length) clearInterval(iv);
-    }, speed);
-    return () => clearInterval(iv);
-  }, [text, speed]);
-  return shown;
+    if (count >= text.length) return;
+    const timer = setTimeout(() => setCount(c => c + 1), speed);
+    return () => clearTimeout(timer);
+  }, [count, text, speed]);
+  return text.slice(0, count);
 }
 
-function Line({ text, type, active }: { text: string; type: string; active: boolean }) {
-  const typed = useTypewriter(active && type === 'cmd' ? text : '', 45);
+function Line({ text, type }: { text: string; type: string }) {
+  // Only commands are typed out; output appears at once. A typed command stays.
+  const typed = useTypewriter(type === 'cmd' ? text : '', 45);
   const display = type === 'cmd' ? typed : text;
 
   const color =
@@ -66,7 +64,7 @@ function Line({ text, type, active }: { text: string; type: string; active: bool
   return (
     <div className="font-mono text-xs leading-5 flex items-center gap-1.5" style={{ color }}>
       {display}
-      {type === 'cmd' && active && typed.length < text.length && (
+      {type === 'cmd' && typed.length < text.length && (
         <span className="inline-block w-1.5 h-3 bg-current animate-pulse" />
       )}
     </div>
@@ -74,12 +72,19 @@ function Line({ text, type, active }: { text: string; type: string; active: bool
 }
 
 export function RecruiterTerminal() {
-  const [visible, setVisible]   = useState(false);
-  const [lines, setLines]       = useState<number[]>([]);
-  const [activeIdx, setActiveIdx] = useState(-1);
+  const [visible, setVisible] = useState(false);
+  // Goes up on every start, so typing the command again replays the sequence.
+  const [run, setRun]         = useState(0);
+  const [lines, setLines]     = useState<number[]>([]);
   const bufferRef = useRef('');
+  const outputRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const start = () => {
+      setVisible(true);
+      setLines([]);
+      setRun(r => r + 1);
+    };
     const handle = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (e.key.length !== 1) return;
@@ -88,38 +93,33 @@ export function RecruiterTerminal() {
         bufferRef.current = bufferRef.current.slice(-SECRET.length);
       }
       if (bufferRef.current === SECRET) {
-        setVisible(true);
-        setLines([]);
-        setActiveIdx(-1);
         bufferRef.current = '';
+        start();
       }
     };
-    const handleEvent = () => {
-      setVisible(true);
-      setLines([]);
-      setActiveIdx(-1);
-    };
     window.addEventListener('keydown', handle);
-    window.addEventListener('recruiter-terminal', handleEvent);
+    window.addEventListener('recruiter-terminal', start);
     return () => {
       window.removeEventListener('keydown', handle);
-      window.removeEventListener('recruiter-terminal', handleEvent);
+      window.removeEventListener('recruiter-terminal', start);
     };
   }, []);
 
   useEffect(() => {
     if (!visible) return;
-    const timers: ReturnType<typeof setTimeout>[] = [];
-    SEQUENCE.forEach((step, i) => {
-      timers.push(setTimeout(() => {
-        setLines(prev => [...prev, i]);
-        setActiveIdx(i);
-      }, step.delay));
-    });
+    const timers = SEQUENCE.map((step, i) =>
+      setTimeout(() => setLines(prev => [...prev, i]), step.delay),
+    );
     return () => timers.forEach(clearTimeout);
-  }, [visible]);
+  }, [visible, run]);
 
-  const close = () => { setVisible(false); setLines([]); setActiveIdx(-1); };
+  // The box is shorter than the full output, so follow the newest line.
+  useEffect(() => {
+    const box = outputRef.current;
+    if (box) box.scrollTop = box.scrollHeight;
+  }, [lines]);
+
+  const close = () => { setVisible(false); setLines([]); };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
@@ -137,6 +137,7 @@ export function RecruiterTerminal() {
           onClick={close}
         >
           <motion.div
+            role="dialog" aria-modal="true" aria-label="Recruiter terminal"
             initial={{ scale: 0.88, y: 24 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, y: 16 }}
             transition={{ type: 'spring', stiffness: 280, damping: 24 }}
             onClick={e => e.stopPropagation()}
@@ -159,9 +160,9 @@ export function RecruiterTerminal() {
             </div>
 
             {/* Content */}
-            <div className="p-5 min-h-64 max-h-96 overflow-y-auto">
+            <div ref={outputRef} className="p-5 min-h-64 max-h-96 overflow-y-auto">
               {lines.map(i => (
-                <Line key={i} text={SEQUENCE[i].text} type={SEQUENCE[i].type} active={activeIdx === i} />
+                <Line key={`${run}-${i}`} text={SEQUENCE[i].text} type={SEQUENCE[i].type} />
               ))}
             </div>
 

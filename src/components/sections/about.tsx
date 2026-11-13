@@ -3,65 +3,30 @@
 import { motion } from 'framer-motion';
 import { MapPin, Heart, Zap, Lightbulb, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
+import { EDUCATION, SITE } from '@/lib/site';
+import {
+  LEVEL_STEPS,
+  SPOKEN_LANGUAGES,
+  type LanguageId,
+  type SpokenLanguage,
+} from '@/lib/languages';
 
 /* ─── Data ───────────────────────────────────────────────── */
 
-const languages = [
-  {
-    name: 'Uzbek',
-    native: "O'zbek",
-    level: 'Native',
-    percent: 100,
-    flag: '🇺🇿',
-    color: '#1A9E6E',
-    note: 'Mother tongue',
-  },
-  {
-    name: 'English',
-    native: 'English',
-    level: 'Advanced',
-    percent: 95,
-    flag: '🇬🇧',
-    color: '#C9A84C',
-    note: 'IELTS 7.5',
-  },
-  {
-    name: 'Korean',
-    native: '한국어',
-    level: 'Intermediate',
-    percent: 60,
-    flag: '🇰🇷',
-    color: '#3D8A5A',
-    note: 'Living in Busan',
-  },
-  {
-    name: 'Russian',
-    native: 'Русский',
-    level: 'Intermediate',
-    percent: 60,
-    flag: '🇷🇺',
-    color: '#7AAA88',
-    note: 'Post-Soviet fluency',
-  },
-  {
-    name: 'Turkish',
-    native: 'Türkçe',
-    level: 'Elementary',
-    percent: 50,
-    flag: '🇹🇷',
-    color: '#9A7A32',
-    note: 'Linguistic sibling of Uzbek',
-  },
-  {
-    name: 'Arabic',
-    native: 'العربية',
-    level: 'B1',
-    percent: 40,
-    flag: '🇸🇦',
-    color: '#2E6644',
-    note: 'Language of the Quran',
-  },
-];
+// Names and levels come from src/lib/languages.ts. Only the colours live here.
+const LANGUAGE_COLORS: Record<LanguageId, string> = {
+  uzbek:   '#1A9E6E',
+  english: '#C9A84C',
+  korean:  '#3D8A5A',
+  russian: '#7AAA88',
+  arabic:  '#5FA37A',
+  turkish: '#9A7A32',
+};
+
+const languages = SPOKEN_LANGUAGES.map(lang => ({
+  ...lang,
+  color: LANGUAGE_COLORS[lang.id],
+}));
 
 const journey = [
   {
@@ -121,15 +86,16 @@ const values = [
   },
 ];
 
-/* ─── Language Bar ───────────────────────────────────────── */
+/* ─── Language card ──────────────────────────────────────── */
 function LanguageCard({
   lang,
   index,
 }: {
-  lang: (typeof languages)[0];
+  lang: SpokenLanguage & { color: string };
   index: number;
 }) {
   const [hovered, setHovered] = useState(false);
+  const steps = LEVEL_STEPS[lang.level];
 
   return (
     <motion.div
@@ -179,19 +145,19 @@ function LanguageCard({
         </span>
       </div>
 
-      {/* Progress bar */}
-      <div
-        className="h-1.5 w-full rounded-full overflow-hidden"
-        style={{ background: 'rgba(255,255,255,0.07)' }}
-      >
-        <motion.div
-          className="h-full rounded-full"
-          initial={{ width: 0 }}
-          whileInView={{ width: `${lang.percent}%` }}
-          transition={{ duration: 1, delay: 0.3 + index * 0.08, ease: 'easeOut' }}
-          viewport={{ once: true }}
-          style={{ background: `linear-gradient(90deg, ${lang.color}88, ${lang.color})` }}
-        />
+      {/* Level meter: four steps, one per level. The badge above says it in words. */}
+      <div className="flex gap-1.5" aria-hidden="true">
+        {[1, 2, 3, 4].map(step => (
+          <motion.div
+            key={step}
+            className="h-1.5 flex-1 rounded-full"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 0.3 + index * 0.08 + step * 0.06 }}
+            viewport={{ once: true }}
+            style={{ background: step <= steps ? lang.color : 'rgba(255,255,255,0.07)' }}
+          />
+        ))}
       </div>
 
       {/* Note */}
@@ -286,7 +252,7 @@ export function About() {
     <section
       id="about"
       className="py-28"
-      style={{ background: 'var(--brand-bg-2)' }}
+      style={{ background: 'var(--brand-bg)' }}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
@@ -298,12 +264,6 @@ export function About() {
           viewport={{ once: true }}
           className="text-center mb-20"
         >
-          <p
-            className="font-mono text-xs uppercase tracking-widest mb-3"
-            style={{ color: 'var(--brand-gold)', fontFamily: 'var(--font-mono, monospace)', letterSpacing: '0.2em' }}
-          >
-            01 / About
-          </p>
           <h2
             className="text-4xl sm:text-5xl font-bold tracking-tight"
             style={{ color: 'var(--brand-text)' }}
@@ -344,43 +304,16 @@ export function About() {
                 Busan, South Korea, chasing a much bigger vision.
               </p>
               <p>
-                I&apos;m building in AI, machine learning, and full-stack development, with a 1400+
-                SAT score on the way to 1600 and an IELTS 7.5. But the résumé isn&apos;t the point
-                — the point is building real things that create real leverage.
+                I study {EDUCATION.field} at {EDUCATION.school} and
+                work as a software engineer at {SITE.company}, building web apps, mobile apps and
+                AI tools. But the résumé isn&apos;t the point — the point is building real things
+                that people use.
               </p>
               <p>
-                Six languages, two continents, one direction: forward. I&apos;m driven by faith, a
+                Six languages, two countries, one direction: forward. I&apos;m driven by faith, a
                 healthy obsession with growth, and the belief that the best technology is built by
                 people who understand the world beyond their screen.
               </p>
-            </div>
-
-            {/* Quick facts */}
-            <div className="mt-8 grid grid-cols-3 gap-3">
-              {[
-                { v: '1400+', l: 'SAT (→1600)' },
-                { v: '7.5', l: 'IELTS Band' },
-                { v: '2000', l: 'Chess ELO goal' },
-              ].map((f) => (
-                <div
-                  key={f.l}
-                  className="rounded-lg p-4 text-center"
-                  style={{
-                    background: 'rgba(10,26,15,0.8)',
-                    border: '1px solid var(--brand-border)',
-                  }}
-                >
-                  <div
-                    className="text-xl font-bold font-mono text-gold-gradient"
-                    style={{ fontFamily: 'var(--font-mono, monospace)' }}
-                  >
-                    {f.v}
-                  </div>
-                  <div className="text-xs mt-1" style={{ color: 'var(--brand-muted)' }}>
-                    {f.l}
-                  </div>
-                </div>
-              ))}
             </div>
           </motion.div>
 
@@ -410,17 +343,9 @@ export function About() {
           className="mb-24"
         >
           <div className="flex items-end justify-between mb-8">
-            <div>
-              <p
-                className="font-mono text-xs uppercase tracking-widest mb-1"
-                style={{ color: 'var(--brand-gold)', fontFamily: 'var(--font-mono, monospace)', letterSpacing: '0.2em' }}
-              >
-                Languages
-              </p>
-              <h3 className="text-2xl font-bold" style={{ color: 'var(--brand-text)' }}>
-                6 languages · 4 scripts
-              </h3>
-            </div>
+            <h3 className="text-2xl font-bold" style={{ color: 'var(--brand-text)' }}>
+              6 languages · 4 scripts
+            </h3>
             <div
               className="hidden sm:flex items-center gap-2 text-xs px-3 py-1.5 rounded-full"
               style={{
@@ -448,12 +373,6 @@ export function About() {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
         >
-          <p
-            className="font-mono text-xs uppercase tracking-widest mb-1 text-center"
-            style={{ color: 'var(--brand-gold)', fontFamily: 'var(--font-mono, monospace)', letterSpacing: '0.2em' }}
-          >
-            Core Values
-          </p>
           <h3
             className="text-2xl font-bold text-center mb-10"
             style={{ color: 'var(--brand-text)' }}

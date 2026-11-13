@@ -1,48 +1,67 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Download, Calendar } from 'lucide-react';
+import { Download, Calendar, GraduationCap } from 'lucide-react';
 import { useState } from 'react';
-import { Skill, Experience, Achievement } from '@/types';
+import { SkillGroup, Experience } from '@/types';
+import { EDUCATION, SITE } from '@/lib/site';
+import { SPOKEN_LANGUAGES } from '@/lib/languages';
 
 /* ─── Data ───────────────────────────────────────────────── */
-const skills: Skill[] = [
-  { name: 'JavaScript/TypeScript', level: 85, category: 'technical' },
-  { name: 'React/Next.js',         level: 90, category: 'technical' },
-  { name: 'Python',                level: 80, category: 'technical' },
-  { name: 'Node.js',               level: 75, category: 'technical' },
-  { name: 'AI/Machine Learning',   level: 70, category: 'technical' },
-  { name: 'TailwindCSS',           level: 85, category: 'technical' },
-  { name: 'Git/GitHub',            level: 80, category: 'technical' },
-  { name: 'Database Design',       level: 70, category: 'technical' },
-  { name: 'Uzbek',   level: 100, category: 'language' },
-  { name: 'English', level: 95,  category: 'language' },
-  { name: 'Korean',  level: 60,  category: 'language' },
-  { name: 'Russian', level: 60,  category: 'language' },
-  { name: 'Turkish', level: 50,  category: 'language' },
-  { name: 'Arabic',  level: 40,  category: 'language' },
-  { name: 'Leadership',      level: 85, category: 'soft' },
-  { name: 'Communication',   level: 90, category: 'soft' },
-  { name: 'Problem Solving', level: 90, category: 'soft' },
-  { name: 'Time Management', level: 85, category: 'soft' },
+// Tools I have shipped something with, next to the projects that used them.
+const SKILL_GROUPS: SkillGroup[] = [
+  {
+    title: 'Web',
+    tools: ['React', 'Next.js', 'TypeScript', 'JavaScript', 'Tailwind CSS', 'Vite', 'GSAP', 'Three.js'],
+    usedIn: 'AI 해바, Silk Node website, Frontend Hub, Korean Vocabulary App, this site',
+  },
+  {
+    title: 'Mobile',
+    tools: ['React Native', 'Expo', 'Zustand', 'NativeWind'],
+    usedIn: 'LifePath, TrY',
+  },
+  {
+    title: 'Backend and data',
+    tools: ['Node.js', 'Express', 'Supabase', 'SQL'],
+    usedIn: 'TrY server, LifePath sync and rankings',
+  },
+  {
+    title: 'Python and AI',
+    tools: ['Python', 'Gemini API', 'python-telegram-bot', 'pytest'],
+    usedIn: 'IlmulHaq Telegram bot, Study & Discipline Tracker',
+  },
 ];
+
+const TOOLS = ['Git', 'GitHub', 'Vercel', 'GitHub Pages'];
 
 const experiences: Experience[] = [
   {
-    id: '1',
+    id: 'work',
+    title: SITE.role,
+    company: SITE.company,
+    duration: 'Present',
+    description: [
+      'AI 해바 (aihaeba.com): AI marketing and business tools for small businesses',
+      'jcodeedu.com: the company website, in four languages, which I upgraded after joining',
+      'silknode.ai.kr: the website of Silk Node, a software development company in Busan, in Korean and English',
+    ],
+    technologies: ['Next.js', 'React', 'PHP'],
+  },
+  {
+    id: 'personal',
     title: 'Full Stack Developer',
     company: 'Personal Projects',
     duration: '2023 - Present',
     description: [
-      'Built responsive web applications using React, Next.js, and TypeScript',
-      'Implemented AI-powered features using modern ML libraries',
-      'Created e-commerce solutions with Shopify integration',
-      'Developed portfolio websites with focus on performance and SEO',
+      'Frontend Hub: a reference library of interface examples that run in the browser (frontendhub.site)',
+      "IlmulHaq: a Telegram bot that answers questions about Islam with verified Qur'an and Hadith quotes, in five languages",
+      'LifePath and TrY: mobile apps built with React Native and Expo',
+      'Korean Vocabulary App and a Python study tracker, built for my own learning',
     ],
-    technologies: ['React', 'Next.js', 'TypeScript', 'TailwindCSS', 'Python'],
+    technologies: ['React', 'React Native', 'TypeScript', 'Python', 'Vite'],
   },
   {
-    id: '2',
+    id: 'tutor',
     title: 'SAT Prep Tutor',
     company: 'Freelance',
     duration: '2023 - Present',
@@ -54,7 +73,7 @@ const experiences: Experience[] = [
     ],
   },
   {
-    id: '3',
+    id: 'dropshipping',
     title: 'Business Development',
     company: 'Dropshipping Ventures',
     duration: '2022 - 2023',
@@ -68,48 +87,66 @@ const experiences: Experience[] = [
   },
 ];
 
-const achievements: Achievement[] = [
-  { id:'1', title:'SAT Score 1400+',  description:'Achieved high SAT score, aiming for 1600',             date:'2024',       category:'academic' },
-  { id:'2', title:'IELTS Band 7.5',   description:'Demonstrated advanced English proficiency',             date:'2024',       category:'academic' },
-  { id:'3', title:'6 Languages',      description:'Uzbek, English, Korean, Russian, Turkish, Arabic',     date:'2024',       category:'personal' },
-  { id:'4', title:'Chess 2000 ELO',   description:'Working towards 2000 ELO rating — studying classics',  date:'In Progress', category:'personal' },
-];
+/* ─── Shared pieces ──────────────────────────────────────── */
+const CARD = {
+  background: 'rgba(10,26,15,0.6)',
+  border: '1px solid var(--brand-border)',
+} as const;
 
-/* ─── Skill Bar ──────────────────────────────────────────── */
-const SkillBar = ({ skill, index }: { skill: Skill; index: number }) => (
-  <div className="space-y-1.5">
-    <div className="flex justify-between text-xs">
-      <span style={{ color: 'var(--brand-text)' }}>{skill.name}</span>
-      <span style={{ color: 'var(--brand-muted)' }}>{skill.level}%</span>
-    </div>
-    <div className="h-1.5 w-full rounded-full" style={{ background: 'rgba(255,255,255,0.07)' }}>
-      <motion.div
-        className="h-1.5 rounded-full"
-        initial={{ width: 0 }}
-        whileInView={{ width: `${skill.level}%` }}
-        transition={{ duration: 1, delay: 0.1 + index * 0.05, ease: 'easeOut' }}
-        viewport={{ once: true }}
-        style={{ background: 'linear-gradient(90deg, var(--brand-green-mid), var(--brand-gold))' }}
-      />
-    </div>
-  </div>
-);
+const GROUP_TITLE = {
+  color: 'var(--brand-gold)',
+  fontFamily: 'var(--font-mono, monospace)',
+} as const;
 
-/* ─── Full Chess Engine ──────────────────────────────────── */
-const PIECES: Record<string, string> = {
-  K:'♔', Q:'♕', R:'♖', B:'♗', N:'♘', P:'♙',
-  k:'♚', q:'♛', r:'♜', b:'♝', n:'♞', p:'♟',
+function Chips({ items }: { items: string[] }) {
+  return (
+    <ul className="flex flex-wrap gap-2">
+      {items.map(item => (
+        <li key={item} className="rounded-full px-2.5 py-0.5 text-xs font-mono"
+          style={{ background:'rgba(201,168,76,0.08)', color:'var(--brand-gold)',
+            border:'1px solid rgba(201,168,76,0.2)', fontFamily:'var(--font-mono,monospace)' }}>
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/* ─── Chess rules ────────────────────────────────────────── */
+// Both sides use the solid shapes and differ by colour. The outline shapes
+// (the hollow knight, pawn and so on) have hairline strokes in most fonts and
+// all but vanish at this size.
+// The pawn is the one chess glyph phones may draw as an emoji. The \uFE0E after
+// it asks for the plain text shape, so it keeps the board's colours.
+const SHAPES: Record<string, string> = {
+  K:'♚', Q:'♛', R:'♜', B:'♝', N:'♞', P:'♟\uFE0E',
+};
+const PIECE_COLOR = { white: '#F0D98A', black: '#6FB08A' } as const;
+
+const FILES = ['a','b','c','d','e','f','g','h'];
+const PIECE_NAMES: Record<string, string> = {
+  K:'king', Q:'queen', R:'rook', B:'bishop', N:'knight', P:'pawn',
 };
 
+/** What a screen reader says for a square, e.g. "e4, white pawn". */
+function squareLabel(r:number, c:number, piece:string): string {
+  const square = `${FILES[c]}${8-r}`;
+  if (!piece) return `${square}, empty`;
+  return `${square}, ${isW(piece)?'white':'black'} ${PIECE_NAMES[piece.toUpperCase()]}`;
+}
+
+// Kasparov vs Topalov, Wijk aan Zee 1999, after 23...Qd6. White to move
+// played 24.Rxd4!!, the rook sacrifice the game is famous for.
+// Rank 8 is the first row, the a-file the first column.
 const KASPAROV_POS = [
-  ['r','','','','k','','','r'],
-  ['p','b','p','','','p','p','p'],
-  ['','p','','p','','n','',''],
-  ['','','','N','p','','',''],
-  ['','','B','','P','','',''],
-  ['','','','','','N','',''],
-  ['P','P','P','','','P','P','P'],
-  ['R','','','Q','K','B','','R'],
+  ['b','','','r','','','','r'],
+  ['k','','','','','p','','p'],
+  ['p','','','q','','n','p',''],
+  ['N','p','p','P','','','',''],
+  ['','','','p','','Q','',''],
+  ['P','','','','','P','P','B'],
+  ['','P','P','','','','','P'],
+  ['','K','','R','R','','',''],
 ];
 
 const START_POS = [
@@ -255,15 +292,18 @@ function computeStatus(s:Omit<ChessState,'status'>): ChessState['status'] {
   return 'playing';
 }
 
-function makeState(pos:Board, turn:Color='white'): ChessState {
+// `canCastle` is false for a position where both kings have already moved.
+function makeState(pos:Board, turn:Color='white', canCastle=true): ChessState {
   const base = { board:pos.map(r=>[...r]), turn, ep:null as [number,number]|null,
-    castle:{wK:true,wQ:true,bK:true,bQ:true} };
+    castle:{wK:canCastle,wQ:canCastle,bK:canCastle,bQ:canCastle} };
   return {...base, status:computeStatus(base)};
 }
 
+const kasparovState = () => makeState(KASPAROV_POS, 'white', false);
+
 /* ─── Chess Widget ───────────────────────────────────────── */
 function ChessWidget() {
-  const [state, setState]   = useState<ChessState>(()=>makeState(KASPAROV_POS));
+  const [state, setState]   = useState<ChessState>(kasparovState);
   const [sel,   setSel]     = useState<[number,number]|null>(null);
   const [legal, setLegal]   = useState<[number,number][]>([]);
 
@@ -281,7 +321,7 @@ function ChessWidget() {
     }
     if (!legal.some(([mr,mc])=>mr===r&&mc===c)) { setSel(null); setLegal([]); return; }
 
-    let next = applyMove(board,sr,sc,r,c,turn,ep);
+    const next = applyMove(board,sr,sc,r,c,turn,ep);
     const piece = board[sr][sc];
     const nc2 = {...castle};
     if (piece==='K'){nc2.wK=false;nc2.wQ=false;
@@ -301,7 +341,7 @@ function ChessWidget() {
     setSel(null); setLegal([]);
   };
 
-  const loadKasparov = () => { setState(makeState(KASPAROV_POS)); setSel(null); setLegal([]); };
+  const loadKasparov = () => { setState(kasparovState()); setSel(null); setLegal([]); };
   const loadStandard = () => { setState(makeState(START_POS));    setSel(null); setLegal([]); };
 
   const [kr,kc] = kingPos(state.board,state.turn);
@@ -326,7 +366,7 @@ function ChessWidget() {
             style={{ color: 'var(--brand-gold)', fontFamily: 'var(--font-mono,monospace)', letterSpacing: '0.15em' }}>
             Side Activity · Chess
           </p>
-          <p className="text-xs mt-1 font-mono font-semibold"
+          <p className="text-xs mt-1 font-mono font-semibold" aria-live="polite"
             style={{ color: statusColor, fontFamily: 'var(--font-mono,monospace)' }}>
             {statusText}
           </p>
@@ -338,17 +378,22 @@ function ChessWidget() {
         </span>
       </div>
 
-      {/* Board */}
+      {/*
+        Board. It is a size container, so a piece can be sized from the board
+        (cqw) and stays in proportion to its square on every screen.
+      */}
       <div className="grid grid-cols-8 rounded-lg overflow-hidden mb-1"
-        style={{ border: '1px solid rgba(201,168,76,0.18)' }}>
+        role="group" aria-label="Chess board"
+        style={{ border: '1px solid rgba(201,168,76,0.18)', containerType: 'inline-size' }}>
         {state.board.map((row,r)=>row.map((piece,c)=>{
           const light   = (r+c)%2===0;
           const isSel   = sel?.[0]===r && sel?.[1]===c;
           const isLegal = legal.some(([mr,mc])=>mr===r&&mc===c);
           const isKingCheck = state.status==='check' && r===kr && c===kc;
           return (
-            <div key={`${r}-${c}`} onClick={()=>click(r,c)}
-              className="aspect-square flex items-center justify-center transition-colors duration-100 relative"
+            <button key={`${r}-${c}`} type="button" onClick={()=>click(r,c)}
+              aria-label={squareLabel(r,c,piece)} aria-pressed={isSel}
+              className="chess-square aspect-square flex items-center justify-center transition-colors duration-100 relative"
               style={{
                 cursor:'pointer',
                 background: isSel         ? 'rgba(201,168,76,0.45)'
@@ -357,26 +402,27 @@ function ChessWidget() {
                   : isLegal               ? 'rgba(61,138,90,0.22)'
                   : light                 ? 'rgba(46,102,68,0.4)'
                   :                         'rgba(10,26,15,0.95)',
-                fontSize: 'clamp(9px,1.8vw,17px)',
+                // A square is 12.5% of the board; the piece fills a bit over half of it.
+                fontSize: '7.5cqw',
               }}>
               {isLegal && !piece && (
-                <div className="absolute w-2 h-2 rounded-full"
+                <span className="absolute w-2 h-2 rounded-full"
                   style={{ background: 'rgba(201,168,76,0.55)' }} />
               )}
               {piece ? (
-                <span style={{ color:isW(piece)?'#E8C46A':'#7AAA88', lineHeight:1, position:'relative', zIndex:1 }}>
-                  {PIECES[piece]}
+                <span aria-hidden="true" style={{ color:isW(piece)?PIECE_COLOR.white:PIECE_COLOR.black, lineHeight:1, position:'relative', zIndex:1 }}>
+                  {SHAPES[piece.toUpperCase()]}
                 </span>
               ) : null}
-            </div>
+            </button>
           );
         }))}
       </div>
 
       {/* File labels */}
-      <div className="grid grid-cols-8 mb-3">
-        {['a','b','c','d','e','f','g','h'].map(f=>(
-          <div key={f} className="text-center text-[9px]" style={{ color:'var(--brand-muted)' }}>{f}</div>
+      <div className="grid grid-cols-8 mb-3" aria-hidden="true">
+        {FILES.map(f=>(
+          <div key={f} className="text-center text-[10px]" style={{ color:'var(--brand-muted)' }}>{f}</div>
         ))}
       </div>
 
@@ -392,11 +438,12 @@ function ChessWidget() {
           className="flex-1 text-xs py-1.5 rounded-lg transition-all hover:scale-[1.02] font-mono"
           style={{ background:'rgba(201,168,76,0.05)', border:'1px solid var(--brand-border)',
             color:'var(--brand-muted)', fontFamily:'var(--font-mono,monospace)' }}>
-          ↺ Kasparov pos
+          ↺ Kasparov 1999
         </button>
       </div>
 
       <p className="text-xs leading-relaxed" style={{ color:'var(--brand-muted)' }}>
+        The board opens on Kasparov vs Topalov, Wijk aan Zee 1999, where White played 24.Rxd4!!
         Full rules: castling, en passant, promotion (auto-queen), check &amp; checkmate.
         Click a piece to see legal moves. ▶ New Game = standard start.
       </p>
@@ -406,21 +453,13 @@ function ChessWidget() {
 
 /* ─── Resume ─────────────────────────────────────────────── */
 export function Resume() {
-  const technical = skills.filter(s => s.category === 'technical');
-  const languages = skills.filter(s => s.category === 'language');
-  const soft      = skills.filter(s => s.category === 'soft');
-
   return (
-    <section id="resume" className="py-28" style={{ background: 'var(--brand-bg)' }}>
+    <section id="resume" className="py-28" style={{ background: 'var(--brand-bg-2)' }}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* Section header */}
         <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }} viewport={{ once: true }} className="text-center mb-16">
-          <p className="font-mono text-xs uppercase tracking-widest mb-3"
-            style={{ color: 'var(--brand-gold)', fontFamily: 'var(--font-mono, monospace)', letterSpacing: '0.2em' }}>
-            04 / Resume
-          </p>
           <h2 className="text-4xl sm:text-5xl font-bold tracking-tight" style={{ color: 'var(--brand-text)' }}>
             Skills &amp; <span className="text-gold-gradient">Experience</span>
           </h2>
@@ -428,7 +467,7 @@ export function Resume() {
             <a href="/resume.pdf" target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all hover:scale-[1.03]"
               style={{ background: 'var(--brand-gold)', color: 'var(--brand-bg)' }}>
-              <Download className="h-4 w-4" />
+              <Download className="h-4 w-4" aria-hidden="true" />
               Download PDF Resume
             </a>
           </div>
@@ -439,23 +478,42 @@ export function Resume() {
           <motion.div className="lg:col-span-2"
             initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }} viewport={{ once: true }}>
-            <div className="rounded-xl p-6"
-              style={{ background: 'rgba(15,33,21,0.7)', border: '1px solid var(--brand-border)' }}>
-              <div className="grid gap-8 sm:grid-cols-3">
+            <div className="rounded-xl p-6" style={CARD}>
+              {/* No percentages: each group names the tools and where I used them. */}
+              <div className="grid gap-x-8 gap-y-7 sm:grid-cols-2">
+                {SKILL_GROUPS.map(group => (
+                  <div key={group.title}>
+                    <h4 className="text-xs font-semibold uppercase tracking-widest mb-3" style={GROUP_TITLE}>
+                      {group.title}
+                    </h4>
+                    <Chips items={group.tools} />
+                    {group.usedIn && (
+                      <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--brand-muted)' }}>
+                        Used in: {group.usedIn}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-7 pt-6 grid gap-x-8 gap-y-7 sm:grid-cols-2"
+                style={{ borderTop: '1px solid var(--brand-border)' }}>
                 <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-widest mb-5"
-                    style={{ color: 'var(--brand-gold)', fontFamily: 'var(--font-mono, monospace)' }}>Technical</h4>
-                  <div className="space-y-4">{technical.map((s,i)=><SkillBar key={s.name} skill={s} index={i}/>)}</div>
+                  <h4 className="text-xs font-semibold uppercase tracking-widest mb-3" style={GROUP_TITLE}>Tools</h4>
+                  <Chips items={TOOLS} />
                 </div>
                 <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-widest mb-5"
-                    style={{ color: 'var(--brand-gold)', fontFamily: 'var(--font-mono, monospace)' }}>Languages</h4>
-                  <div className="space-y-4">{languages.map((s,i)=><SkillBar key={s.name} skill={s} index={i}/>)}</div>
-                </div>
-                <div>
-                  <h4 className="text-xs font-semibold uppercase tracking-widest mb-5"
-                    style={{ color: 'var(--brand-gold)', fontFamily: 'var(--font-mono, monospace)' }}>Soft Skills</h4>
-                  <div className="space-y-4">{soft.map((s,i)=><SkillBar key={s.name} skill={s} index={i}/>)}</div>
+                  <h4 className="text-xs font-semibold uppercase tracking-widest mb-3" style={GROUP_TITLE}>Languages</h4>
+                  <ul className="space-y-1.5 text-sm">
+                    {SPOKEN_LANGUAGES.map(lang => (
+                      <li key={lang.id} className="flex justify-between gap-4">
+                        <span style={{ color: 'var(--brand-text)' }}>{lang.name}</span>
+                        <span style={{ color: 'var(--brand-muted)' }}>
+                          {lang.level}{lang.id === 'english' ? ` · ${lang.note}` : ''}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
@@ -467,17 +525,40 @@ export function Resume() {
           </motion.div>
         </div>
 
-        {/* Experience */}
+        {/* Education */}
         <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }} viewport={{ once: true }} className="mb-24">
+          <h3 className="text-2xl font-bold mb-10 text-center" style={{ color: 'var(--brand-text)' }}>Education</h3>
+          <div className="rounded-xl p-6 flex items-start gap-4" style={CARD}>
+            <div className="hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
+              style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.2)' }}>
+              <GraduationCap className="h-5 w-5" aria-hidden="true" style={{ color: 'var(--brand-gold)' }} />
+            </div>
+            <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h4 className="text-lg font-semibold" style={{ color: 'var(--brand-text)' }}>{EDUCATION.degree}</h4>
+                <p className="text-sm font-medium" style={{ color: 'var(--brand-gold)' }}>
+                  {EDUCATION.school} · {EDUCATION.place}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 mt-2 sm:mt-0 text-xs font-mono"
+                style={{ color: 'var(--brand-muted)', fontFamily: 'var(--font-mono,monospace)' }}>
+                <Calendar className="h-3.5 w-3.5" aria-hidden="true" />{EDUCATION.period}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Experience */}
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }} viewport={{ once: true }}>
           <h3 className="text-2xl font-bold mb-10 text-center" style={{ color: 'var(--brand-text)' }}>Experience</h3>
           <div className="space-y-5">
             {experiences.map((exp,i)=>(
               <motion.div key={exp.id}
                 initial={{ opacity: 0, x: i%2===0?-16:16 }} whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.45, delay: i*0.1 }} viewport={{ once: true }}
-                className="rounded-xl p-6"
-                style={{ background: 'rgba(15,33,21,0.7)', border: '1px solid var(--brand-border)' }}>
+                className="rounded-xl p-6" style={CARD}>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                   <div>
                     <h4 className="text-lg font-semibold" style={{ color: 'var(--brand-text)' }}>{exp.title}</h4>
@@ -485,49 +566,17 @@ export function Resume() {
                   </div>
                   <div className="flex items-center gap-1.5 mt-2 sm:mt-0 text-xs font-mono"
                     style={{ color: 'var(--brand-muted)', fontFamily: 'var(--font-mono,monospace)' }}>
-                    <Calendar className="h-3.5 w-3.5" />{exp.duration}
+                    <Calendar className="h-3.5 w-3.5" aria-hidden="true" />{exp.duration}
                   </div>
                 </div>
-                <ul className="space-y-1.5 mb-4">
+                <ul className={`space-y-1.5 ${exp.technologies ? 'mb-4' : ''}`}>
                   {exp.description.map((item,j)=>(
                     <li key={j} className="flex items-start gap-2 text-sm" style={{ color: 'var(--brand-muted)' }}>
-                      <span style={{ color: 'var(--brand-gold)' }}>›</span>{item}
+                      <span aria-hidden="true" style={{ color: 'var(--brand-gold)' }}>›</span>{item}
                     </li>
                   ))}
                 </ul>
-                {exp.technologies && (
-                  <div className="flex flex-wrap gap-2">
-                    {exp.technologies.map(tech=>(
-                      <span key={tech} className="rounded-full px-2.5 py-0.5 text-xs font-mono"
-                        style={{ background:'rgba(201,168,76,0.08)', color:'var(--brand-gold)',
-                          border:'1px solid rgba(201,168,76,0.2)', fontFamily:'var(--font-mono,monospace)' }}>
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Achievements */}
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }} viewport={{ once: true }}>
-          <h3 className="text-2xl font-bold mb-10 text-center" style={{ color: 'var(--brand-text)' }}>Key Achievements</h3>
-          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {achievements.map((a,i)=>(
-              <motion.div key={a.id}
-                initial={{ opacity: 0, scale: 0.92 }} whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: i*0.08 }} viewport={{ once: true }}
-                className="rounded-xl p-6 text-center hover:-translate-y-1 transition-transform duration-200"
-                style={{ background: 'rgba(15,33,21,0.7)', border: '1px solid var(--brand-border)' }}>
-                <h4 className="font-semibold mb-2" style={{ color: 'var(--brand-text)' }}>{a.title}</h4>
-                <p className="text-sm mb-4" style={{ color: 'var(--brand-muted)' }}>{a.description}</p>
-                <span className="text-xs font-mono"
-                  style={{ color: 'var(--brand-gold)', fontFamily: 'var(--font-mono,monospace)' }}>
-                  {a.date}
-                </span>
+                {exp.technologies && <Chips items={exp.technologies} />}
               </motion.div>
             ))}
           </div>

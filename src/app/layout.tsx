@@ -2,9 +2,11 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/providers/theme-provider';
+import { MotionProvider } from '@/components/providers/motion-provider';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { ScrollProgress } from '@/components/scroll-progress';
+import { SITE } from '@/lib/site';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -18,22 +20,42 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-mono',
 });
 
+const title = `${SITE.name} — ${SITE.role}`;
+
 export const metadata: Metadata = {
+  // Makes the canonical link and the share image point at the real address,
+  // also when the same build is opened through a *.vercel.app URL.
+  metadataBase: new URL(SITE.url),
   title: {
-    default: 'Khurshidbek Urazaliev — AI & Tech Innovator',
-    template: '%s | Khurshidbek Urazaliev',
+    default: title,
+    template: `%s | ${SITE.name}`,
   },
-  description:
-    'AI & Tech Innovator · Multilingual · Faith-Driven Creator. Building technology, mastering languages, creating leverage for a bigger future.',
-  keywords: ['AI', 'Web Development', 'Machine Learning', 'Portfolio', 'Data Science'],
-  authors: [{ name: 'Khurshidbek Urazaliev' }],
-  creator: 'Khurshidbek Urazaliev',
+  description: SITE.description,
+  keywords: [
+    SITE.name,
+    'Software Engineer',
+    'React',
+    'Next.js',
+    'React Native',
+    'Python',
+    'Busan',
+    'Portfolio',
+  ],
+  authors: [{ name: SITE.name, url: SITE.url }],
+  creator: SITE.name,
+  alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    title: 'Khurshidbek Urazaliev — AI & Tech Innovator',
-    description: 'AI & Tech Innovator · Multilingual · Faith-Driven Creator',
-    siteName: 'Khurshidbek Urazaliev',
+    url: '/',
+    title,
+    description: SITE.tagline,
+    siteName: SITE.name,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title,
+    description: SITE.tagline,
   },
 };
 
@@ -43,18 +65,23 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="dark">
       <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
+        <a href="#main" className="skip-link">
+          Skip to content
+        </a>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem={false}
           disableTransitionOnChange={false}
         >
-          <div className="flex min-h-screen flex-col">
-            <ScrollProgress />
-            <Header />
-            <main className="flex-1 pt-16">{children}</main>
-            <Footer />
-          </div>
+          <MotionProvider>
+            <div className="flex min-h-screen flex-col">
+              <ScrollProgress />
+              <Header />
+              <main id="main" className="flex-1 pt-16">{children}</main>
+              <Footer />
+            </div>
+          </MotionProvider>
         </ThemeProvider>
       </body>
     </html>

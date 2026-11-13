@@ -1,16 +1,16 @@
-# Khurshidbek Urazaliev — Personal Portfolio
+# Khurshidbek Urazaliev — Personal Website
 
-> 🌐 **Live:** [khurshidbek.xyz](https://www.khurshidbek.xyz/)
+> 🌐 **Live:** [khurshidbek.site](https://www.khurshidbek.site/)
 
-A personal brand website built to tell a story — not just display a résumé. Features an interactive language tree, a full chess engine, a language DNA scanner, a secret recruiter terminal, and a live AI language tutor.
+My personal site: who I am, what I have built, and how to reach me. One page, with a few things to play with along the way.
 
 ---
 
 ## Stack
 
-- **Framework** — Next.js 15 (App Router)
+- **Framework** — Next.js 16 (App Router)
 - **Language** — TypeScript
-- **Styling** — TailwindCSS + CSS variables
+- **Styling** — Tailwind CSS 4 + CSS variables
 - **Animations** — Framer Motion
 - **Icons** — Lucide React
 - **Deployment** — Vercel
@@ -19,15 +19,39 @@ A personal brand website built to tell a story — not just display a résumé. 
 
 ## Sections
 
-| # | Section | Highlights |
-|---|---------|------------|
-| 01 | Hero | Terminal intro animation · particle canvas · live session timer |
-| 02 | About | Journey timeline · language cards · values |
-| 03 | Languages | Interactive SVG tree · vocab quiz · pronunciation challenge (Web Speech API) |
-| 04 | DNA Scanner | Real-time Unicode script detection — no API, pure JS |
-| 05 | Resume | Skill bars · fully playable chess with legal move validation |
-| 06 | Projects | Project showcase |
-| 07 | Contact | Contact form |
+| Section | What is in it |
+|---------|---------------|
+| Hero | Name, role, links, a particle background and a session timer |
+| Projects | Work at Jinie EduTech and my own projects, with live and GitHub links |
+| About | My story, a journey timeline, languages and values |
+| Languages | An interactive language tree with samples, a vocabulary quiz and a pronunciation check (Web Speech API) |
+| Scanner | Tells which of my six languages each word of a text is in. No API, plain JavaScript |
+| Resume | Tools by project, education, experience and a playable chess board with legal-move checking |
+| Contact | Contact links and a contact form |
+
+---
+
+## Where things live
+
+| What | File |
+|------|------|
+| Name, role, emails, social links, the form's access key | `src/lib/site.ts` |
+| Languages and their levels | `src/lib/languages.ts` |
+| Project cards | `src/components/sections/projects.tsx` |
+| Skills, education, experience | `src/components/sections/resume.tsx` |
+| Page title, description, share tags | `src/app/layout.tsx` |
+| Share image and icons | `src/app/opengraph-image.tsx`, `src/app/icon.tsx`, `src/app/apple-icon.tsx` |
+
+---
+
+## Contact form
+
+The form sends through [Web3Forms](https://web3forms.com).
+
+1. Make a free access key on web3forms.com with the email that should receive the messages.
+2. Paste it into `WEB3FORMS_ACCESS_KEY` in `src/lib/site.ts`. The key is made to be public.
+
+While the key is empty, the Send button opens the visitor's own mail app with the message filled in.
 
 ---
 
@@ -47,9 +71,15 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000)
 
+| Command | What it does |
+|---------|--------------|
+| `npm run dev` | Starts the dev server |
+| `npm run build` | Builds the site for production |
+| `npm run lint` | Checks the code with ESLint |
+
 ---
 
 ## Contact
 
 **Khurshidbek Urazaliev**
-[khurshidbek.xyz](https://www.khurshidbek.xyz/) · [LinkedIn](https://www.linkedin.com/in/khurshidbekurazaliev/) · khurshidbekurazaliev@gmail.com
+[khurshidbek.site](https://www.khurshidbek.site/) · [LinkedIn](https://www.linkedin.com/in/khurshidbekurazaliev/) · [Telegram](https://t.me/lu3frv) · ummahfaris@gmail.com · khurshidbekurazaliev@gmail.com

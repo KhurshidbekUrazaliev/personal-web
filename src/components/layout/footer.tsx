@@ -1,11 +1,12 @@
-import { Github, Linkedin, Mail, Instagram } from 'lucide-react';
-import Link from 'next/link';
+import { Github, Linkedin, Mail, Instagram, Send, ExternalLink } from 'lucide-react';
+import { EMAILS, LINKS } from '@/lib/site';
 
 const socialLinks = [
-  { name: 'GitHub',    href: 'https://github.com/KhurshidbekUrazaliev',           icon: Github },
-  { name: 'LinkedIn',  href: 'https://www.linkedin.com/in/khurshidbekurazaliev/', icon: Linkedin },
-  { name: 'Email',     href: 'mailto:khurshidbekurazaliev@gmail.com',              icon: Mail },
-  { name: 'Instagram', href: 'https://www.instagram.com/cfarisc19/',                icon: Instagram },
+  { name: 'GitHub',    href: LINKS.github,               icon: Github },
+  { name: 'LinkedIn',  href: LINKS.linkedin,             icon: Linkedin },
+  { name: 'Telegram',  href: LINKS.telegram,             icon: Send },
+  { name: 'Email',     href: `mailto:${EMAILS.primary}`, icon: Mail },
+  { name: 'Instagram', href: LINKS.instagram,            icon: Instagram },
 ];
 
 export function Footer() {
@@ -25,33 +26,42 @@ export function Footer() {
               letterSpacing: '0.06em',
             }}
           >
-            KU<span style={{ color: 'var(--brand-muted)' }}>.dev</span>
+            khurshidbek<span style={{ color: 'var(--brand-muted)' }}>.site</span>
           </span>
 
-          {/* Social links */}
-          <div className="flex gap-5">
+          {/* Social links: 44px targets so they are easy to tap */}
+          <div className="flex">
             {socialLinks.map(item => (
-              <Link
+              <a
                 key={item.name}
                 href={item.href}
-                target="_blank"
-                rel="noopener noreferrer"
+                {...(item.href.startsWith('http')
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
                 aria-label={item.name}
-                className="transition-colors duration-150 hover:text-[var(--brand-gold)]"
+                className="flex h-11 w-11 items-center justify-center rounded-lg transition-colors duration-150 hover:text-[var(--brand-gold)]"
                 style={{ color: 'var(--brand-muted)' }}
               >
-                <item.icon className="h-5 w-5" />
-              </Link>
+                <item.icon className="h-5 w-5" aria-hidden="true" />
+              </a>
             ))}
           </div>
 
-          {/* Copyright */}
-          <p className="text-xs" style={{ color: 'var(--brand-muted)' }}>
-            © {new Date().getFullYear()} Khurshidbek Urazaliev · Faith · Growth · Leverage
-          </p>
-          <p className="text-xs opacity-20 font-mono" style={{ color: 'var(--brand-muted)', fontFamily: 'var(--font-mono,monospace)' }}>
-            {/* try: sudo hire khurshidbek */}
-          </p>
+          <div className="flex flex-col items-center gap-1.5 md:items-end">
+            <p className="text-xs" style={{ color: 'var(--brand-muted)' }}>
+              © {new Date().getFullYear()} Khurshidbek Urazaliev · Faith · Growth · Leverage
+            </p>
+            <a
+              href={LINKS.frontendHub}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-xs transition-colors duration-150 hover:text-[var(--brand-gold)]"
+              style={{ color: 'var(--brand-muted)' }}
+            >
+              Also by me: Frontend Hub
+              <ExternalLink className="h-3 w-3" aria-hidden="true" />
+            </a>
+          </div>
         </div>
       </div>
     </footer>
