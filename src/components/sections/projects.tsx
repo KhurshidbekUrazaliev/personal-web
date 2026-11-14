@@ -80,6 +80,18 @@ const PROJECTS: Project[] = [
     liveLabel: 'Open in Telegram',
   },
   {
+    id: 'lifepath-telegram',
+    title: 'LifePath for Telegram',
+    description:
+      "LifePath as a Telegram Mini App: goals with real targets, daily habits, tasks and a calendar, with XP, streaks, opt-in rankings and reminders from the bot. Plans and progress are saved in Telegram's cloud, LifePath Plus is paid in Telegram Stars, and it runs in English, Uzbek and Russian.",
+    technologies: ['React', 'TypeScript', 'Vite', 'Cloudflare Workers', 'Cloudflare D1', 'Telegram Mini Apps'],
+    category: 'tools',
+    status: 'Live',
+    liveUrl: LINKS.lifePathBot,
+    liveLabel: 'Open in Telegram',
+    githubUrl: `${LINKS.github}/lifepath-miniapp`,
+  },
+  {
     id: 'lifepath',
     title: 'LifePath',
     description:
@@ -152,7 +164,7 @@ export function Projects() {
             Built & <span className="text-gold-gradient">Building</span>
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed" style={{ color: 'var(--brand-muted)' }}>
-            My work at {SITE.company} and my own projects: web apps, mobile apps, a Telegram bot and a command-line tool.
+            My work at {SITE.company} and my own projects: web apps, mobile apps, Telegram bots and a command-line tool.
           </p>
         </motion.div>
 

@@ -13,7 +13,7 @@ const SKILL_GROUPS: SkillGroup[] = [
   {
     title: 'Web',
     tools: ['React', 'Next.js', 'TypeScript', 'JavaScript', 'Tailwind CSS', 'Framer Motion', 'jQuery', 'Vite', 'GSAP', 'Three.js'],
-    usedIn: 'AI 해바, Silk Node website, Jinie EduTech website, Frontend Hub, Korean Vocabulary App, this site',
+    usedIn: 'AI 해바, Silk Node website, Jinie EduTech website, Frontend Hub, LifePath for Telegram, Korean Vocabulary App, this site',
   },
   {
     title: 'Mobile',
@@ -22,8 +22,8 @@ const SKILL_GROUPS: SkillGroup[] = [
   },
   {
     title: 'Backend and data',
-    tools: ['Node.js', 'Express', 'PHP', 'Supabase', 'SQL'],
-    usedIn: 'Jinie EduTech website, TrY server, LifePath sync and rankings',
+    tools: ['Node.js', 'Express', 'PHP', 'Supabase', 'SQL', 'Cloudflare Workers', 'Cloudflare D1'],
+    usedIn: 'Jinie EduTech website, TrY server, LifePath sync and rankings, LifePath for Telegram server',
   },
   {
     title: 'Python and AI',
@@ -32,7 +32,7 @@ const SKILL_GROUPS: SkillGroup[] = [
   },
 ];
 
-const TOOLS = ['Git', 'GitHub', 'Vercel', 'GitHub Pages'];
+const TOOLS = ['Git', 'GitHub', 'Vercel', 'GitHub Pages', 'Cloudflare'];
 
 const experiences: Experience[] = [
   {
@@ -55,10 +55,11 @@ const experiences: Experience[] = [
     description: [
       'Frontend Hub: a reference library of interface examples that run in the browser (frontendhub.site)',
       "IlmulHaq: a Telegram bot that answers questions about Islam with verified Qur'an and Hadith quotes, in five languages",
+      'LifePath for Telegram: a Telegram Mini App for goals and habits, with a Cloudflare Workers server, bot reminders and Telegram Stars payments',
       'LifePath and TrY: mobile apps built with React Native and Expo',
       'Korean Vocabulary App and a Python study tracker, built for my own learning',
     ],
-    technologies: ['React', 'React Native', 'TypeScript', 'Python', 'Vite'],
+    technologies: ['React', 'React Native', 'TypeScript', 'Python', 'Vite', 'Cloudflare Workers'],
   },
   {
     id: 'tutor',

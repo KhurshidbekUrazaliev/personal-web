@@ -45,6 +45,7 @@ export const LINKS = {
   frontendHub: 'https://frontendhub.site',
   aiHaeba: 'https://aihaeba.com',
   ilmulHaqBot: 'https://t.me/islam_q_a_bot',
+  lifePathBot: 'https://t.me/LifePathAppBot',
 } as const;
 
 /** A `mailto:` address that reaches both inboxes. */

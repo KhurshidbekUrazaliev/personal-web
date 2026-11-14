@@ -73,6 +73,19 @@ export function IlmulHaqIcon() {
   );
 }
 
+/** The LifePath app icon: a white path climbing to a goal, on blue. */
+export function LifePathIcon() {
+  return (
+    <Tile background="linear-gradient(135deg, #5E9BFF, #2A5BEA)">
+      <svg viewBox="0 0 72 72" width="46" height="46" fill="#FFFFFF">
+        <path d="M20 50c8 0 8-14 16-14s8-14 16-14" fill="none" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
+        <circle cx="20" cy="50" r="4.5" />
+        <circle cx="52" cy="22" r="6" />
+      </svg>
+    </Tile>
+  );
+}
+
 export function TelegramIcon() {
   return (
     <Tile background="linear-gradient(180deg, #37BBFE, #007DBB)">

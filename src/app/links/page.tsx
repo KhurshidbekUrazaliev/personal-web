@@ -10,6 +10,7 @@ import {
   GmailIcon,
   IlmulHaqIcon,
   InstagramIcon,
+  LifePathIcon,
   LinkedInIcon,
   TelegramIcon,
   WebsiteIcon,
@@ -51,12 +52,13 @@ export const metadata: Metadata = {
 // Tints the phone browser's bars like the top of the wallpaper.
 export const viewport: Viewport = { themeColor: '#0B2416' };
 
-// The same ten links, in the same order, as on linktr.ee/ummahfaris.
+// The same eleven links, in the same order, as on linktr.ee/ummahfaris.
 const links = [
   { title: 'My website', detail: SITE.domain, href: '/', icon: <WebsiteIcon /> },
   { title: 'Frontend Hub', detail: 'References that run', href: LINKS.frontendHub, icon: <FrontendHubIcon /> },
   { title: 'AI 해바', detail: 'AI tools for small businesses', href: LINKS.aiHaeba, icon: <AiHaebaIcon /> },
   { title: 'IlmulHaq', detail: 'Islamic Q&A bot on Telegram', href: LINKS.ilmulHaqBot, icon: <IlmulHaqIcon /> },
+  { title: 'LifePath', detail: 'Goals and habits in Telegram', href: LINKS.lifePathBot, icon: <LifePathIcon /> },
   { title: "Xurshidbek's Diary", detail: 'Telegram channel', href: LINKS.telegramChannel, icon: <TelegramIcon /> },
   { title: 'LinkedIn', detail: 'khurshidbekurazaliev', href: LINKS.linkedin, icon: <LinkedInIcon /> },
   { title: 'GitHub', detail: 'KhurshidbekUrazaliev', href: LINKS.github, icon: <GitHubIcon /> },
