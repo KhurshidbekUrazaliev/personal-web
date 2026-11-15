@@ -55,7 +55,7 @@ const experiences: Experience[] = [
     description: [
       'Frontend Hub: a reference library of interface examples that run in the browser (frontendhub.site)',
       "IlmulHaq: a Telegram bot that answers questions about Islam with verified Qur'an and Hadith quotes, in five languages",
-      'LifePath for Telegram: a Telegram Mini App for goals and habits, with a Cloudflare Workers server, bot reminders and Telegram Stars payments',
+      'LifePath for Telegram: a Telegram Mini App for goals, habits and prayer times, with a 3D companion, a Cloudflare Workers server, bot reminders and Telegram Stars payments',
       'LifePath and TrY: mobile apps built with React Native and Expo',
       'Korean Vocabulary App and a Python study tracker, built for my own learning',
     ],

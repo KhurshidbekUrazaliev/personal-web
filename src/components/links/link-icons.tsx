@@ -73,14 +73,35 @@ export function IlmulHaqIcon() {
   );
 }
 
-/** The LifePath app icon: a white path climbing to a goal, on blue. */
+// The seeds of the LifePath fig: two rings of small drops that point to its middle.
+const FIG_SEEDS = [
+  { ring: 86, count: 13, size: 15, turn: 0 },
+  { ring: 48, count: 8, size: 12, turn: 22 },
+];
+
+/** The LifePath app icon: a fig cut in half, on the app's night blue. */
 export function LifePathIcon() {
   return (
-    <Tile background="linear-gradient(135deg, #5E9BFF, #2A5BEA)">
-      <svg viewBox="0 0 72 72" width="46" height="46" fill="#FFFFFF">
-        <path d="M20 50c8 0 8-14 16-14s8-14 16-14" fill="none" stroke="#FFFFFF" strokeWidth="5" strokeLinecap="round" />
-        <circle cx="20" cy="50" r="4.5" />
-        <circle cx="52" cy="22" r="6" />
+    <Tile background="#0B1026">
+      <svg viewBox="52 46 408 408" width="46" height="46">
+        <g transform="rotate(10 256 280)">
+          <rect x="241" y="70" width="30" height="52" rx="13" fill="#6FBF73" />
+          <path d="M256 102C300 156 410 226 410 324C410 404 342 452 256 452C170 452 102 404 102 324C102 226 212 156 256 102Z" fill="#8E6BF2" />
+          <path d="M256 136.6C293.8 183 388.4 243.2 388.4 327.5C388.4 396.3 330 437.6 256 437.6C182 437.6 123.6 396.3 123.6 327.5C123.6 243.2 218.2 183 256 136.6Z" fill="#FFF3DA" />
+          <path d="M256 167C288.6 207 370 258.8 370 331.3C370 390.5 319.6 426 256 426C192.4 426 142 390.5 142 331.3C142 258.8 223.4 207 256 167Z" fill="#E4476A" />
+          <ellipse cx="256" cy="332" rx="22" ry="27" fill="#F7A1B4" />
+          <g fill="#FFCF5C">
+            {FIG_SEEDS.flatMap(({ ring, count, size, turn }) =>
+              Array.from({ length: count }, (_, i) => (
+                <path
+                  key={`${ring}-${i}`}
+                  transform={`translate(256 332) rotate(${Math.round((i / count) * 3600) / 10 + turn}) translate(0 ${-ring})`}
+                  d={`M0 ${size}C${-size * 0.7} ${size * 0.3} ${-size * 0.62} ${-size * 0.75} 0 ${-size * 0.9}C${size * 0.62} ${-size * 0.75} ${size * 0.7} ${size * 0.3} 0 ${size}Z`}
+                />
+              )),
+            )}
+          </g>
+        </g>
       </svg>
     </Tile>
   );

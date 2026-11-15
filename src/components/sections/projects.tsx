@@ -83,8 +83,8 @@ const PROJECTS: Project[] = [
     id: 'lifepath-telegram',
     title: 'LifePath for Telegram',
     description:
-      "LifePath as a Telegram Mini App: goals with real targets, daily habits, tasks and a calendar, with XP, streaks, opt-in rankings and reminders from the bot. Plans and progress are saved in Telegram's cloud, LifePath Plus is paid in Telegram Stars, and it runs in English, Uzbek and Russian.",
-    technologies: ['React', 'TypeScript', 'Vite', 'Cloudflare Workers', 'Cloudflare D1', 'Telegram Mini Apps'],
+      "LifePath as a Telegram Mini App: goals with real targets, daily habits and a calendar, with XP, streaks, friend challenges and reminders from the bot. A 3D companion grows up as you level up, and prayer times, a qibla compass and a Qur'an reading plan sit beside the plans. It saves to Telegram's cloud, takes Telegram Stars for Plus, and runs in English, Uzbek and Russian.",
+    technologies: ['React', 'TypeScript', 'Vite', 'Three.js', 'Cloudflare Workers', 'Cloudflare D1', 'Telegram Mini Apps'],
     category: 'tools',
     status: 'Live',
     liveUrl: LINKS.lifePathBot,
